@@ -1,0 +1,527 @@
+
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,'SF Pro Display',sans-serif;}
+  :root{
+    --bg:#FFF8E1;--green:#4CAF50;--green-dk:#388E3C;--green-lt:#E8F5E9;
+    --brown:#8D6E63;--brown-dk:#6D4C41;--brown-lt:#EFEBE9;--brown-mid:#BCAAA4;
+    --white:#FFFFFF;--t1:#1C1C1E;--t2:#6C6C70;--t3:#AEAEB2;
+    --r-md:16px;--r-lg:24px;--r-pill:999px;
+  }
+  @keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.8);opacity:.3}}
+  @keyframes pawFloat{0%,100%{transform:translateY(0) rotate(-12deg)}50%{transform:translateY(-5px) rotate(-12deg)}}
+  @keyframes fabGlow{0%,100%{box-shadow:0 5px 18px rgba(109,76,65,.55),0 2px 5px rgba(0,0,0,.18),inset 0 1.5px 0 rgba(255,255,255,.3)}50%{box-shadow:0 7px 24px rgba(109,76,65,.72),0 2px 6px rgba(0,0,0,.12),inset 0 1.5px 0 rgba(255,255,255,.3)}}
+  @keyframes splashPaw{0%{opacity:0;transform:scale(.6) rotate(-15deg)}60%{opacity:1;transform:scale(1.05) rotate(-8deg)}100%{opacity:1;transform:scale(1) rotate(-10deg)}}
+  @keyframes splashTitle{0%{opacity:0;transform:translateY(16px)}100%{opacity:1;transform:translateY(0)}}
+  @keyframes splashSub{0%{opacity:0;transform:translateY(10px)}100%{opacity:1;transform:translateY(0)}}
+  .pulse-dot{animation:pulse 2s ease-in-out infinite;}
+
+  .wrap{display:flex;gap:24px;align-items:flex-start;justify-content:center;padding:28px 16px;background:#E8E4DC;border-radius:20px;flex-wrap:wrap;}
+  .pw{display:flex;flex-direction:column;align-items:center;}
+  .slbl{font-size:11px;font-weight:600;color:#999;letter-spacing:.6px;text-transform:uppercase;margin-bottom:10px;}
+
+  .phone{width:340px;height:760px;background:var(--bg);border-radius:44px;padding:50px 0 0;
+    box-shadow:0 0 0 9px #1C1C1E,0 0 0 11px #3A3A3C,0 24px 60px rgba(0,0,0,.3);
+    overflow:hidden;display:flex;flex-direction:column;position:relative;}
+  .notch{position:absolute;top:13px;left:50%;transform:translateX(-50%);width:100px;height:28px;background:#1C1C1E;border-radius:16px;z-index:20;}
+  .sbar{display:flex;justify-content:space-between;align-items:center;padding:0 24px 8px;font-size:12px;font-weight:600;color:var(--t1);flex-shrink:0;}
+  .scroll{flex:1;overflow-y:auto;padding:0 13px 14px;scrollbar-width:none;}
+  .scroll::-webkit-scrollbar{display:none;}
+
+  /* ── 네비바 공통 ── */
+  .tabbar{display:flex;align-items:flex-end;justify-content:space-around;padding:8px 4px 20px;
+    background:rgba(255,255,255,.95);border-top:.5px solid rgba(0,0,0,.08);
+    backdrop-filter:blur(24px);flex-shrink:0;}
+  .tab{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:48px;cursor:pointer;}
+  .tlbl{font-size:10px;font-weight:500;color:var(--t3);}
+  .tab-on .tlbl{color:var(--green);font-weight:700;}
+
+  /* FAB */
+  .fab-wrap{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;margin-top:-26px;}
+  .fab-outer{width:56px;height:56px;border-radius:50%;
+    background:linear-gradient(150deg,#A1887F 0%,#6D4C41 100%);
+    padding:3px;animation:fabGlow 3s ease-in-out infinite;
+    transition:transform .15s ease;}
+  .fab-outer:active{transform:scale(.87);animation:none;box-shadow:0 2px 8px rgba(109,76,65,.3);}
+  .fab-inner{width:100%;height:100%;border-radius:50%;
+    background:linear-gradient(145deg,#9C7B72 0%,#8D6E63 40%,#6D4C41 100%);
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:inset 0 2px 4px rgba(255,255,255,.22),inset 0 -2px 4px rgba(0,0,0,.22);}
+  .fab-lbl{font-size:10px;font-weight:700;color:var(--brown-dk);}
+
+  /* ── SPLASH ── */
+  .splash{background:linear-gradient(160deg,#FFF8E1 0%,#FFF3CD 60%,#FFE082 100%);
+    width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;position:relative;overflow:hidden;}
+  .splash-circle1{position:absolute;width:260px;height:260px;border-radius:50%;background:rgba(76,175,80,.06);top:-60px;right:-60px;}
+  .splash-circle2{position:absolute;width:180px;height:180px;border-radius:50%;background:rgba(141,110,99,.05);bottom:-40px;left:-40px;}
+  .splash-paw{animation:splashPaw .9s cubic-bezier(.34,1.56,.64,1) both;}
+  .splash-brand{font-size:13px;font-weight:600;color:var(--brown-mid);letter-spacing:2px;text-transform:uppercase;margin-top:20px;animation:splashSub 1s .5s both;}
+  .splash-title{font-size:32px;font-weight:800;color:var(--t1);letter-spacing:-1px;margin-top:6px;animation:splashTitle .8s .3s both;text-align:center;line-height:1.1;}
+  .splash-title span{color:var(--green);}
+  .splash-catch{font-size:14px;color:var(--t2);margin-top:10px;text-align:center;line-height:1.5;animation:splashSub .8s .6s both;}
+  .splash-btn{margin-top:40px;background:var(--green);color:white;border-radius:var(--r-pill);padding:14px 36px;font-size:15px;font-weight:700;animation:splashSub .8s .8s both;
+    box-shadow:0 4px 16px rgba(76,175,80,.4);}
+  .splash-skip{font-size:12px;color:var(--t3);margin-top:14px;animation:splashSub .8s 1s both;}
+
+  /* ── HOME ── */
+  .nav{display:flex;justify-content:space-between;align-items:center;padding:4px 0 12px;}
+  .nav-sub{font-size:12px;color:var(--t2);margin-bottom:1px;}
+  .nav-title{font-size:26px;font-weight:700;color:var(--t1);letter-spacing:-.5px;display:flex;align-items:center;gap:5px;}
+  .ava{width:36px;height:36px;border-radius:50%;background:var(--brown);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:white;}
+  .hero{background:linear-gradient(135deg,#43A047 0%,#66BB6A 55%,#81C784 100%);border-radius:var(--r-lg);padding:18px;margin-bottom:12px;position:relative;overflow:hidden;}
+  .hero-c1{position:absolute;top:-28px;right:44px;width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,.1);}
+  .hero-c2{position:absolute;top:18px;right:-16px;width:54px;height:54px;border-radius:50%;background:rgba(255,255,255,.07);}
+  .hero-paw{position:absolute;right:-8px;bottom:-8px;opacity:.12;animation:pawFloat 3s ease-in-out infinite;}
+  .hero-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.2);border-radius:var(--r-pill);padding:3px 9px;font-size:10px;font-weight:600;color:white;margin-bottom:9px;}
+  .hero-title{font-size:18px;font-weight:700;color:white;letter-spacing:-.3px;margin-bottom:2px;}
+  .hero-sub{font-size:11px;color:rgba(255,255,255,.74);margin-bottom:14px;line-height:1.5;}
+  .hero-row{display:flex;align-items:center;justify-content:space-between;}
+  .hero-btn{display:inline-flex;align-items:center;gap:5px;background:white;color:var(--green-dk);border-radius:var(--r-pill);padding:8px 14px;font-size:12px;font-weight:700;}
+  .hero-stat{color:rgba(255,255,255,.8);font-size:10px;font-weight:500;text-align:right;}
+  .hero-stat span{font-size:17px;font-weight:700;color:white;display:block;margin-top:1px;}
+  .prog-card{background:var(--white);border-radius:var(--r-md);padding:12px 14px;margin-bottom:12px;border:.5px solid rgba(0,0,0,.06);}
+  .prog-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;}
+  .prog-lbl{font-size:12px;font-weight:600;color:var(--t1);}
+  .prog-pct{font-size:12px;font-weight:700;color:var(--green);}
+  .prog-track{height:7px;background:#F0F0F0;border-radius:99px;overflow:hidden;}
+  .prog-fill{height:100%;background:linear-gradient(90deg,#43A047,#81C784);border-radius:99px;width:62%;}
+  .prog-sub{font-size:10px;color:var(--t3);margin-top:5px;}
+  .sec{display:flex;align-items:center;gap:5px;font-size:16px;font-weight:700;color:var(--t1);letter-spacing:-.3px;margin:14px 0 9px;}
+  .hsc{display:flex;gap:9px;overflow-x:auto;margin:0 -13px;padding-left:13px;padding-bottom:3px;scrollbar-width:none;}
+  .hsc::-webkit-scrollbar{display:none;}
+  .dcard{flex-shrink:0;width:110px;background:var(--white);border-radius:var(--r-md);overflow:hidden;border:.5px solid rgba(0,0,0,.06);}
+  .dcard-top{height:4px;}
+  .dcard-body{padding:11px 11px 12px;}
+  .dava{width:48px;height:48px;border-radius:14px;margin-bottom:9px;display:flex;align-items:center;justify-content:center;}
+  .dname{font-size:13px;font-weight:700;color:var(--t1);margin-bottom:1px;}
+  .dbreed{font-size:9px;color:var(--t3);margin-bottom:7px;}
+  .dstatus{display:inline-flex;align-items:center;gap:3px;border-radius:var(--r-pill);padding:2px 7px;font-size:9px;font-weight:600;}
+  .s-active{background:var(--green-lt);color:var(--green-dk);}
+  .s-rest{background:var(--brown-lt);color:var(--brown-dk);}
+  .qgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:12px;}
+  .qitem{background:var(--white);border-radius:var(--r-md);padding:11px 5px 9px;text-align:center;border:.5px solid rgba(0,0,0,.06);}
+  .qicon{width:36px;height:36px;border-radius:10px;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;}
+  .qlbl{font-size:9px;font-weight:600;color:var(--t2);}
+  .acard{background:var(--white);border-radius:var(--r-md);padding:11px 12px;border:.5px solid rgba(0,0,0,.06);margin-bottom:7px;display:flex;align-items:center;gap:10px;}
+  .aicon{width:38px;height:38px;border-radius:11px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+  .ainfo{flex:1;}
+  .atitle{font-size:12px;font-weight:600;color:var(--t1);margin-bottom:1px;}
+  .asub{font-size:10px;color:var(--t3);}
+  .atime{font-size:10px;color:var(--t3);}
+  .chev{font-size:13px;color:var(--t3);margin-left:2px;}
+
+  /* ── DOG PROFILE ── */
+  .back{font-size:13px;font-weight:600;color:var(--green);padding:2px 0 10px;display:flex;align-items:center;gap:3px;}
+  .phero{background:var(--white);border-radius:var(--r-lg);padding:20px;text-align:center;border:.5px solid rgba(0,0,0,.06);margin-bottom:11px;position:relative;overflow:hidden;}
+  .phero-bg{position:absolute;right:-14px;top:-14px;opacity:.05;}
+  .pname{font-size:20px;font-weight:700;color:var(--t1);letter-spacing:-.3px;margin-top:9px;}
+  .pbreed{font-size:12px;color:var(--t2);margin-top:2px;}
+  .pbadge{display:inline-flex;align-items:center;gap:5px;background:var(--green-lt);border-radius:var(--r-pill);padding:4px 11px;margin-top:9px;font-size:10px;font-weight:600;color:var(--green-dk);}
+  .srow{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:11px;}
+  .scard{background:var(--white);border-radius:var(--r-md);padding:12px 7px;text-align:center;border:.5px solid rgba(0,0,0,.06);}
+  .snum{font-size:19px;font-weight:700;}
+  .slb{font-size:8px;color:var(--t3);font-weight:500;margin-top:2px;line-height:1.3;}
+  .brown-strip{background:var(--brown-lt);border-radius:var(--r-md);padding:11px 13px;margin-bottom:11px;display:flex;align-items:center;gap:11px;border:.5px solid rgba(141,110,99,.15);}
+  .bstrip-icon{width:34px;height:34px;border-radius:9px;background:var(--brown);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .hlist{background:var(--white);border-radius:var(--r-md);border:.5px solid rgba(0,0,0,.06);overflow:hidden;margin-bottom:11px;}
+  .hrow{display:flex;justify-content:space-between;align-items:center;padding:10px 13px;border-bottom:.5px solid rgba(0,0,0,.05);}
+  .hrow:last-child{border-bottom:none;}
+  .hkey{font-size:12px;color:var(--t2);}
+  .hval{font-size:12px;font-weight:600;color:var(--t1);}
+  .btn-primary{background:linear-gradient(135deg,#43A047,#66BB6A);color:white;border-radius:var(--r-pill);padding:14px;font-size:14px;font-weight:700;text-align:center;margin-bottom:9px;display:flex;align-items:center;justify-content:center;gap:7px;}
+  .btn-outline{background:var(--white);color:var(--brown-dk);border-radius:var(--r-pill);padding:13px;font-size:14px;font-weight:600;text-align:center;border:1.5px solid var(--brown-mid);}
+</style>
+
+<!-- 공통 탭바 SVG 컴포넌트 (인라인 재사용) -->
+
+<div class="wrap">
+
+<!-- ═══ SCREEN 1: SPLASH ═══ -->
+<div class="pw">
+  <div class="slbl">Splash</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <!-- 상태바 흰 배경용 -->
+    <div style="padding:0 24px 0;flex-shrink:0;">
+      <div class="sbar" style="padding:0;">
+        <span style="color:#6C6C70;">9:41</span>
+        <div style="display:flex;align-items:center;gap:4px;">
+          <svg width="14" height="10" fill="none" viewBox="0 0 14 10"><rect x="0" y="3.5" width="2.2" height="6.5" rx="1" fill="#6C6C70"/><rect x="3.5" y="2" width="2.2" height="8" rx="1" fill="#6C6C70"/><rect x="7" y="0" width="2.2" height="10" rx="1" fill="#6C6C70"/><rect x="10.5" y="0" width="2.2" height="10" rx="1" fill="#6C6C70" opacity=".25"/></svg>
+          <svg width="21" height="10" fill="none" viewBox="0 0 21 10"><rect x=".5" y=".5" width="17" height="9" rx="3" stroke="#6C6C70" stroke-opacity=".35"/><rect x="1.5" y="1.5" width="12" height="7" rx="2" fill="#6C6C70"/></svg>
+        </div>
+      </div>
+    </div>
+    <div class="splash">
+      <div class="splash-circle1"></div>
+      <div class="splash-circle2"></div>
+
+      <!-- 메인 발바닥 일러스트 -->
+      <div class="splash-paw">
+        <svg width="140" height="140" viewBox="0 0 140 140" fill="none">
+          <defs>
+            <radialGradient id="padGrad" cx="40%" cy="35%" r="60%">
+              <stop offset="0%" stop-color="#A1887F"/>
+              <stop offset="100%" stop-color="#5D4037"/>
+            </radialGradient>
+            <radialGradient id="toeGrad" cx="35%" cy="30%" r="65%">
+              <stop offset="0%" stop-color="#8D6E63"/>
+              <stop offset="100%" stop-color="#4E342E"/>
+            </radialGradient>
+            <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="rgba(93,64,55,0.3)"/>
+            </filter>
+          </defs>
+          <!-- 발가락 4개 -->
+          <ellipse cx="44" cy="46" rx="15" ry="19" fill="url(#toeGrad)" filter="url(#softShadow)"/>
+          <ellipse cx="72" cy="38" rx="16" ry="20" fill="url(#toeGrad)" filter="url(#softShadow)"/>
+          <ellipse cx="100" cy="46" rx="15" ry="19" fill="url(#toeGrad)" filter="url(#softShadow)"/>
+          <ellipse cx="122" cy="66" rx="13" ry="17" fill="url(#toeGrad)" filter="url(#softShadow)"/>
+          <!-- 발가락 하이라이트 -->
+          <ellipse cx="40" cy="40" rx="6" ry="8" fill="rgba(255,255,255,.18)"/>
+          <ellipse cx="68" cy="32" rx="7" ry="9" fill="rgba(255,255,255,.18)"/>
+          <ellipse cx="96" cy="40" rx="6" ry="8" fill="rgba(255,255,255,.18)"/>
+          <ellipse cx="118" cy="60" rx="5" ry="7" fill="rgba(255,255,255,.15)"/>
+          <!-- 메인 패드 -->
+          <ellipse cx="74" cy="98" rx="40" ry="32" fill="url(#padGrad)" filter="url(#softShadow)"/>
+          <!-- 패드 하이라이트 -->
+          <ellipse cx="62" cy="86" rx="18" ry="12" fill="rgba(255,255,255,.16)"/>
+          <!-- 패드 내부 질감 작은 타원들 -->
+          <ellipse cx="64" cy="104" rx="12" ry="8" fill="rgba(0,0,0,.06)"/>
+          <ellipse cx="84" cy="96" rx="10" ry="7" fill="rgba(0,0,0,.05)"/>
+        </svg>
+      </div>
+
+      <div class="splash-brand">PawOut</div>
+      <div class="splash-title">Let's <span>PawOut</span> 🐾</div>
+      <div class="splash-catch">당신의 강아지와 함께하는<br>모든 순간을 기록하세요</div>
+      <div class="splash-btn">시작하기</div>
+      <div class="splash-skip">건너뛰기</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SCREEN 2: HOME ═══ -->
+<div class="pw">
+  <div class="slbl">Home</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="sbar">
+      <span>9:41</span>
+      <div style="display:flex;align-items:center;gap:4px;">
+        <svg width="14" height="10" fill="none" viewBox="0 0 14 10"><rect x="0" y="3.5" width="2.2" height="6.5" rx="1" fill="#1C1C1E"/><rect x="3.5" y="2" width="2.2" height="8" rx="1" fill="#1C1C1E"/><rect x="7" y="0" width="2.2" height="10" rx="1" fill="#1C1C1E"/><rect x="10.5" y="0" width="2.2" height="10" rx="1" fill="#1C1C1E" opacity=".25"/></svg>
+        <svg width="21" height="10" fill="none" viewBox="0 0 21 10"><rect x=".5" y=".5" width="17" height="9" rx="3" stroke="#1C1C1E" stroke-opacity=".3"/><rect x="1.5" y="1.5" width="12" height="7" rx="2" fill="#1C1C1E"/></svg>
+      </div>
+    </div>
+    <div class="scroll">
+      <div class="nav">
+        <div>
+          <div class="nav-sub">Good morning 👋</div>
+          <div class="nav-title">PawOut
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><ellipse cx="10" cy="14" rx="3.6" ry="2.5" fill="var(--brown)"/><ellipse cx="5.8" cy="10.4" rx="1.8" ry="2.3" fill="var(--brown)"/><ellipse cx="14.2" cy="10.4" rx="1.8" ry="2.3" fill="var(--brown)"/><ellipse cx="7.6" cy="7.6" rx="1.6" ry="2" fill="var(--brown)"/><ellipse cx="12.4" cy="7.6" rx="1.6" ry="2" fill="var(--brown)"/></svg>
+          </div>
+        </div>
+        <div class="ava">J</div>
+      </div>
+
+      <div class="hero">
+        <div class="hero-c1"></div><div class="hero-c2"></div>
+        <div class="hero-paw"><svg width="100" height="100" viewBox="0 0 100 100" fill="none"><ellipse cx="50" cy="71" rx="24" ry="18" fill="white"/><ellipse cx="29" cy="51" rx="9" ry="12" fill="white"/><ellipse cx="71" cy="51" rx="9" ry="12" fill="white"/><ellipse cx="38" cy="37" rx="8" ry="10" fill="white"/><ellipse cx="62" cy="37" rx="8" ry="10" fill="white"/></svg></div>
+        <div class="hero-badge"><svg class="pulse-dot" width="5" height="5" viewBox="0 0 5 5"><circle cx="2.5" cy="2.5" r="2.5" fill="white"/></svg>Active now</div>
+        <div class="hero-title">Time for Mochi's walk!</div>
+        <div class="hero-sub">Last walked 6 hours ago · 0.8 mi goal</div>
+        <div class="hero-row">
+          <div class="hero-btn">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="var(--green-dk)" stroke-width="2" stroke-linecap="round"><path d="M1 6h10M7 2l4 4-4 4"/></svg>
+            Start walk
+          </div>
+          <div class="hero-stat">Today's steps<span>4,280</span></div>
+        </div>
+      </div>
+
+      <div class="prog-card">
+        <div class="prog-top"><div class="prog-lbl">Today's goal</div><div class="prog-pct">62%</div></div>
+        <div class="prog-track"><div class="prog-fill"></div></div>
+        <div class="prog-sub">Mochi walked 0.5 mi · 0.3 mi left</div>
+      </div>
+
+      <div class="sec">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><ellipse cx="7" cy="10" rx="3.2" ry="2.2" fill="var(--brown)" opacity=".75"/><ellipse cx="3.8" cy="7" rx="1.5" ry="1.9" fill="var(--brown)" opacity=".75"/><ellipse cx="10.2" cy="7" rx="1.5" ry="1.9" fill="var(--brown)" opacity=".75"/><ellipse cx="5.2" cy="4.5" rx="1.4" ry="1.7" fill="var(--brown)" opacity=".75"/><ellipse cx="8.8" cy="4.5" rx="1.4" ry="1.7" fill="var(--brown)" opacity=".75"/></svg>
+        My dogs
+      </div>
+      <div class="hsc">
+        <!-- Mochi -->
+        <div class="dcard"><div class="dcard-top" style="background:var(--green);"></div><div class="dcard-body"><div class="dava" style="background:var(--green-lt);"><svg width="40" height="40" viewBox="0 0 40 40" fill="none"><ellipse cx="20" cy="25" rx="12" ry="10" fill="#E8A87C"/><polygon points="9,17 12,8 17,17" fill="#C97D50"/><polygon points="31,17 28,8 23,17" fill="#C97D50"/><polygon points="10,17 12.5,10 16,17" fill="#F5C5A3"/><polygon points="30,17 27.5,10 24,17" fill="#F5C5A3"/><ellipse cx="20" cy="27" rx="7.5" ry="5.5" fill="#F5C5A3"/><ellipse cx="16" cy="23" rx="1.9" ry="2.1" fill="#3D2B1F"/><ellipse cx="24" cy="23" rx="1.9" ry="2.1" fill="#3D2B1F"/><circle cx="16.7" cy="22.4" r=".65" fill="white"/><circle cx="24.7" cy="22.4" r=".65" fill="white"/><ellipse cx="20" cy="27.5" rx="1.8" ry="1.2" fill="#3D2B1F"/><ellipse cx="13" cy="26" rx="2.2" ry="1.1" fill="#F4A0A0" opacity=".5"/><ellipse cx="27" cy="26" rx="2.2" ry="1.1" fill="#F4A0A0" opacity=".5"/></svg></div><div class="dname">Mochi</div><div class="dbreed">Shiba Inu · 3y</div><div class="dstatus s-active"><svg class="pulse-dot" width="5" height="5" viewBox="0 0 5 5"><circle cx="2.5" cy="2.5" r="2.5" fill="var(--green)"/></svg>Active</div></div></div>
+        <!-- Boba -->
+        <div class="dcard"><div class="dcard-top" style="background:var(--brown);"></div><div class="dcard-body"><div class="dava" style="background:var(--brown-lt);"><svg width="40" height="40" viewBox="0 0 40 40" fill="none"><ellipse cx="10" cy="23" rx="4.5" ry="8.5" fill="#8D6E63" transform="rotate(-10 10 23)"/><ellipse cx="30" cy="23" rx="4.5" ry="8.5" fill="#8D6E63" transform="rotate(10 30 23)"/><ellipse cx="20" cy="23" rx="11" ry="10" fill="#D4A574"/><ellipse cx="20" cy="28" rx="6.5" ry="4.5" fill="#F5E6D3"/><ellipse cx="16" cy="22" rx="2" ry="2.2" fill="#3D2B1F"/><ellipse cx="24" cy="22" rx="2" ry="2.2" fill="#3D2B1F"/><circle cx="16.7" cy="21.3" r=".7" fill="white"/><circle cx="24.7" cy="21.3" r=".7" fill="white"/><ellipse cx="20" cy="27" rx="2" ry="1.3" fill="#3D2B1F"/><ellipse cx="12.5" cy="25.5" rx="2.2" ry="1.1" fill="#F4A0A0" opacity=".4"/><ellipse cx="27.5" cy="25.5" rx="2.2" ry="1.1" fill="#F4A0A0" opacity=".4"/></svg></div><div class="dname">Boba</div><div class="dbreed">Beagle · 5y</div><div class="dstatus s-rest"><svg width="5" height="5" viewBox="0 0 5 5"><circle cx="2.5" cy="2.5" r="2.5" fill="var(--brown)"/></svg>Resting</div></div></div>
+        <!-- Dubu -->
+        <div class="dcard"><div class="dcard-top" style="background:#7986CB;"></div><div class="dcard-body"><div class="dava" style="background:#EDE7F6;"><svg width="40" height="40" viewBox="0 0 40 40" fill="none"><circle cx="20" cy="17" r="9" fill="#B39DDB"/><circle cx="11" cy="19" r="4" fill="#B39DDB"/><circle cx="29" cy="19" r="4" fill="#B39DDB"/><circle cx="14" cy="13" r="3.5" fill="#B39DDB"/><circle cx="26" cy="13" r="3.5" fill="#B39DDB"/><circle cx="20" cy="10" r="3.5" fill="#B39DDB"/><ellipse cx="20" cy="21" rx="7.5" ry="6.5" fill="#CE93D8"/><ellipse cx="20" cy="25" rx="4" ry="3" fill="#E1BEE7"/><ellipse cx="16.5" cy="20" rx="1.7" ry="1.9" fill="#3D2B1F"/><ellipse cx="23.5" cy="20" rx="1.7" ry="1.9" fill="#3D2B1F"/><circle cx="17.1" cy="19.4" r=".6" fill="white"/><circle cx="24.1" cy="19.4" r=".6" fill="white"/><ellipse cx="20" cy="24" rx="1.7" ry="1.1" fill="#3D2B1F"/><ellipse cx="13.5" cy="23" rx="1.9" ry="1" fill="#F48FB1" opacity=".5"/><ellipse cx="26.5" cy="23" rx="1.9" ry="1" fill="#F48FB1" opacity=".5"/></svg></div><div class="dname">Dubu</div><div class="dbreed">Poodle · 2y</div><div class="dstatus s-active"><svg class="pulse-dot" width="5" height="5" viewBox="0 0 5 5"><circle cx="2.5" cy="2.5" r="2.5" fill="var(--green)"/></svg>Active</div></div></div>
+        <div style="flex-shrink:0;width:10px;"></div>
+      </div>
+
+      <div class="sec">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="var(--t2)" stroke-width="1.4" stroke-linecap="round"><circle cx="7" cy="7" r="5.5"/><path d="M7 4.5v2.5l1.5 1"/></svg>
+        Recent activity
+      </div>
+      <div class="acard">
+        <div class="aicon" style="background:var(--green-lt);"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="var(--green)" stroke-width="1.7" stroke-linecap="round"><path d="M3 14L9 3l6 11"/><path d="M5.5 10h7"/></svg></div>
+        <div class="ainfo"><div class="atitle">Morning walk</div><div class="asub">Mochi · 1.2 mi · 24 min</div></div>
+        <div class="atime">8 am</div><div class="chev">›</div>
+      </div>
+      <div class="acard">
+        <div class="aicon" style="background:var(--brown-lt);"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="var(--brown)" stroke-width="1.7" stroke-linecap="round"><path d="M3 9h12"/><path d="M4 9c0 3.5 1.6 6.3 5 7 3.4-.7 5-3.5 5-7"/><path d="M2 16h14"/></svg></div>
+        <div class="ainfo"><div class="atitle">Feeding time</div><div class="asub">Boba · 200g kibble</div></div>
+        <div class="atime">7 am</div><div class="chev">›</div>
+      </div>
+    </div>
+
+    <!-- 탭바 -->
+    <div class="tabbar">
+      <!-- Walk: 운동화 -->
+      <div class="tab tab-on">
+        <svg width="26" height="22" viewBox="0 0 26 22" fill="none">
+          <path d="M2 15.5Q2 12 6 12h3.5l2.5-6h3c2.5 0 4 1.8 4.5 3.5l.8 2.5c.4 1-.1 2.5-1.2 2.5H3.2C2.1 14.5 1.7 16.2 2 17" stroke="var(--green)" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M10 12l1.5-4" stroke="var(--green)" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M6 12.5l1-1.5" stroke="var(--green)" stroke-width="1.3" stroke-linecap="round"/>
+          <path d="M2 17.5h22" stroke="var(--green)" stroke-width="1.65" stroke-linecap="round"/>
+          <!-- 신발끈 -->
+          <path d="M13 8.5l2.5 1M15.5 7l2 1.5" stroke="var(--green)" stroke-width="1.1" stroke-linecap="round" opacity=".7"/>
+          <!-- 밑창 두께 -->
+          <path d="M2 17.5c0 1 .7 1.8 1.5 1.8h18c.8 0 1.5-.8 1.5-1.8" stroke="var(--green)" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+        <div class="tlbl" style="color:var(--green);font-weight:700;">Walk</div>
+      </div>
+
+      <!-- Alerts -->
+      <div class="tab tab-off" style="position:relative;">
+        <div style="position:relative;display:inline-block;">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="var(--t3)" stroke-width="1.65" stroke-linecap="round">
+            <path d="M5.5 9.5a5.5 5.5 0 0111 0v3.5l2 2H3.5l2-2V9.5z"/>
+            <path d="M9 18.5a2 2 0 004 0"/>
+          </svg>
+          <div style="position:absolute;top:-2px;right:-3px;width:8px;height:8px;border-radius:50%;background:#E53935;border:1.5px solid var(--bg);"></div>
+        </div>
+        <div class="tlbl">Alerts</div>
+      </div>
+
+      <!-- FAB: 입체 발바닥 -->
+      <div class="fab-wrap" onclick="let o=this.querySelector('.fab-outer');o.style.transform='scale(.87)';o.style.animation='none';setTimeout(()=>{o.style.transform='';o.style.animation='fabGlow 3s ease-in-out infinite';},160)">
+        <div class="fab-outer">
+          <div class="fab-inner">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+              <defs>
+                <radialGradient id="fp" cx="35%" cy="30%" r="65%">
+                  <stop offset="0%" stop-color="rgba(255,255,255,1)"/>
+                  <stop offset="100%" stop-color="rgba(220,200,195,1)"/>
+                </radialGradient>
+                <radialGradient id="ft" cx="35%" cy="30%" r="65%">
+                  <stop offset="0%" stop-color="rgba(255,255,255,.98)"/>
+                  <stop offset="100%" stop-color="rgba(210,190,186,.95)"/>
+                </radialGradient>
+              </defs>
+              <!-- 발가락 4개 — 진하고 입체감 -->
+              <ellipse cx="9.5" cy="10.5" rx="3.2" ry="4" fill="url(#ft)"/>
+              <ellipse cx="16" cy="8.5" rx="3.4" ry="4.2" fill="url(#ft)"/>
+              <ellipse cx="22.5" cy="10.5" rx="3.2" ry="4" fill="url(#ft)"/>
+              <ellipse cx="27" cy="16" rx="2.8" ry="3.6" fill="url(#ft)"/>
+              <!-- 발가락 그림자 -->
+              <ellipse cx="9.5" cy="13.5" rx="3.2" ry="1.2" fill="rgba(100,60,40,.12)"/>
+              <ellipse cx="16" cy="11.7" rx="3.4" ry="1.3" fill="rgba(100,60,40,.12)"/>
+              <ellipse cx="22.5" cy="13.5" rx="3.2" ry="1.2" fill="rgba(100,60,40,.12)"/>
+              <ellipse cx="27" cy="18.8" rx="2.8" ry="1.1" fill="rgba(100,60,40,.1)"/>
+              <!-- 메인 패드 -->
+              <ellipse cx="16.5" cy="22.5" rx="8.5" ry="6.5" fill="url(#fp)"/>
+              <!-- 패드 그림자 (하단) -->
+              <ellipse cx="16.5" cy="27.5" rx="8.5" ry="2.5" fill="rgba(100,60,40,.14)"/>
+              <!-- 패드 하이라이트 -->
+              <ellipse cx="13.5" cy="19.5" rx="4" ry="2.8" fill="rgba(255,255,255,.45)"/>
+              <!-- 패드 내부 질감 -->
+              <ellipse cx="15" cy="24" rx="3.5" ry="2.2" fill="rgba(140,100,90,.07)"/>
+              <ellipse cx="20" cy="22" rx="2.5" ry="1.8" fill="rgba(140,100,90,.06)"/>
+            </svg>
+          </div>
+        </div>
+        <div class="fab-lbl">Home</div>
+      </div>
+
+      <!-- Schedule -->
+      <div class="tab tab-off">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="var(--t3)" stroke-width="1.65" stroke-linecap="round">
+          <rect x="2.5" y="4.5" width="17" height="15" rx="3"/>
+          <path d="M15 2.5v4M7 2.5v4M2.5 9.5h17"/>
+          <circle cx="7" cy="13" r="1" fill="var(--t3)" stroke="none"/>
+          <circle cx="11" cy="13" r="1" fill="var(--t3)" stroke="none"/>
+          <circle cx="15" cy="13" r="1" fill="var(--t3)" stroke="none"/>
+          <circle cx="7" cy="17" r="1" fill="var(--t3)" stroke="none"/>
+          <circle cx="11" cy="17" r="1" fill="var(--t3)" stroke="none"/>
+        </svg>
+        <div class="tlbl">Schedule</div>
+      </div>
+
+      <!-- Profile: 개밥그릇 -->
+      <div class="tab tab-off">
+        <svg width="24" height="22" viewBox="0 0 24 22" fill="none">
+          <!-- 그릇 본체 — 넓고 얕은 사발형 -->
+          <path d="M3 9h18" stroke="var(--t3)" stroke-width="1.65" stroke-linecap="round"/>
+          <path d="M4 9c.3 5 2.5 8.5 8 9 5.5-.5 7.7-4 8-9" stroke="var(--t3)" stroke-width="1.65" stroke-linecap="round"/>
+          <!-- 받침대 -->
+          <path d="M2 19.5h20" stroke="var(--t3)" stroke-width="1.8" stroke-linecap="round"/>
+          <!-- 사료 알갱이 3개 -->
+          <ellipse cx="9" cy="13" rx="1.4" ry="1" fill="var(--t3)"/>
+          <ellipse cx="12" cy="14.5" rx="1.4" ry="1" fill="var(--t3)"/>
+          <ellipse cx="15" cy="13" rx="1.4" ry="1" fill="var(--t3)"/>
+          <!-- 강아지 발바닥 각인 (그릇 브랜드처럼) -->
+          <ellipse cx="12" cy="5.5" rx="1.2" ry=".9" fill="var(--t3)" opacity=".5"/>
+          <ellipse cx="10.2" cy="4" rx=".85" ry="1.05" fill="var(--t3)" opacity=".45"/>
+          <ellipse cx="13.8" cy="4" rx=".85" ry="1.05" fill="var(--t3)" opacity=".45"/>
+          <ellipse cx="9.4" cy="2.7" rx=".8" ry=".95" fill="var(--t3)" opacity=".4"/>
+          <ellipse cx="14.6" cy="2.7" rx=".8" ry=".95" fill="var(--t3)" opacity=".4"/>
+        </svg>
+        <div class="tlbl">Profile</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SCREEN 3: DOG PROFILE ═══ -->
+<div class="pw">
+  <div class="slbl">Dog Profile</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="sbar">
+      <span>9:41</span>
+      <div style="display:flex;align-items:center;gap:4px;">
+        <svg width="21" height="10" fill="none" viewBox="0 0 21 10"><rect x=".5" y=".5" width="17" height="9" rx="3" stroke="#1C1C1E" stroke-opacity=".3"/><rect x="1.5" y="1.5" width="12" height="7" rx="2" fill="#1C1C1E"/></svg>
+      </div>
+    </div>
+    <div class="scroll">
+      <div class="back">
+        <svg width="8" height="13" viewBox="0 0 8 13" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round"><path d="M7 1L1 6.5L7 12"/></svg>
+        My dogs
+      </div>
+
+      <div class="phero">
+        <div class="phero-bg"><svg width="120" height="120" viewBox="0 0 120 120" fill="var(--green)"><ellipse cx="60" cy="85" rx="29" ry="22"/><ellipse cx="35" cy="62" rx="11" ry="15"/><ellipse cx="85" cy="62" rx="11" ry="15"/><ellipse cx="46" cy="44" rx="10" ry="13"/><ellipse cx="74" cy="44" rx="10" ry="13"/></svg></div>
+        <!-- 큰 Mochi 아바타 -->
+        <svg width="78" height="78" viewBox="0 0 78 78" fill="none">
+          <ellipse cx="39" cy="50" rx="22" ry="19" fill="#E8A87C"/>
+          <polygon points="18,32 22,14 31,32" fill="#C97D50"/><polygon points="60,32 56,14 47,32" fill="#C97D50"/>
+          <polygon points="19.5,32 23,17 29,32" fill="#F5C5A3"/><polygon points="58.5,32 55,17 49,32" fill="#F5C5A3"/>
+          <ellipse cx="39" cy="53" rx="14" ry="11" fill="#F5C5A3"/>
+          <ellipse cx="31" cy="45" rx="3.8" ry="4.2" fill="#3D2B1F"/><ellipse cx="47" cy="45" rx="3.8" ry="4.2" fill="#3D2B1F"/>
+          <circle cx="32.4" cy="43.5" r="1.3" fill="white"/><circle cx="48.4" cy="43.5" r="1.3" fill="white"/>
+          <ellipse cx="39" cy="53" rx="3.2" ry="2.3" fill="#3D2B1F"/>
+          <ellipse cx="26" cy="50" rx="4" ry="2" fill="#F4A0A0" opacity=".5"/><ellipse cx="52" cy="50" rx="4" ry="2" fill="#F4A0A0" opacity=".5"/>
+          <path d="M36 57 Q39 60 42 57" stroke="#C97D50" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+        </svg>
+        <div class="pname">Mochi</div>
+        <div class="pbreed">Shiba Inu · 3 years old</div>
+        <div class="pbadge">
+          <svg class="pulse-dot" width="6" height="6" viewBox="0 0 6 6"><circle cx="3" cy="3" r="3" fill="var(--green)"/></svg>
+          Active & healthy
+        </div>
+      </div>
+
+      <div class="srow">
+        <div class="scard"><div class="snum" style="color:var(--green);">12</div><div class="slb">Walks this month</div></div>
+        <div class="scard"><div class="snum" style="color:var(--t1);">8.4</div><div class="slb">Total miles</div></div>
+        <div class="scard"><div class="snum" style="color:var(--brown);">4.8</div><div class="slb">Avg rating</div></div>
+      </div>
+
+      <div class="brown-strip">
+        <div class="bstrip-icon">
+          <svg width="17" height="17" viewBox="0 0 17 17" fill="none" stroke="white" stroke-width="1.7" stroke-linecap="round"><path d="M4 13l6.5-6.5M8 4l2 2-6 6-2-2 6-6zM13 8l-2-2 1-1a1.4 1.4 0 012 2l-1 1z"/></svg>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:600;color:var(--brown-dk);">Grooming in 7 days</div>
+          <div style="font-size:10px;color:var(--brown-mid);margin-top:1px;">Apr 20 · Paws & Claws Studio</div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="var(--t2)" stroke-width="1.4" stroke-linecap="round"><path d="M7 1.5C4.5 1.5 2.2 3.5 2.2 6.2c0 3.4 4.8 7 4.8 7s4.8-3.6 4.8-7C11.8 3.5 9.5 1.5 7 1.5z"/></svg>
+        Health
+      </div>
+      <div class="hlist">
+        <div class="hrow"><span class="hkey">Weight</span><span class="hval">7.2 kg</span></div>
+        <div class="hrow"><span class="hkey">Last vet visit</span><span class="hval">Mar 2026</span></div>
+        <div class="hrow"><span class="hkey">Vaccination</span><span class="hval" style="color:var(--green-dk);">Up to date ✓</span></div>
+        <div class="hrow"><span class="hkey">Next grooming</span><span class="hval" style="color:var(--brown);">Apr 20, 2026</span></div>
+        <div class="hrow"><span class="hkey">Food</span><span class="hval">Dry · 180g / day</span></div>
+      </div>
+
+      <div class="btn-primary">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><ellipse cx="8" cy="11.5" rx="4" ry="2.8" fill="white" opacity=".9"/><ellipse cx="4" cy="8" rx="1.8" ry="2.3" fill="white" opacity=".9"/><ellipse cx="12" cy="8" rx="1.8" ry="2.3" fill="white" opacity=".9"/><ellipse cx="5.5" cy="5.2" rx="1.6" ry="2" fill="white" opacity=".9"/><ellipse cx="10.5" cy="5.2" rx="1.6" ry="2" fill="white" opacity=".9"/></svg>
+        Start walk with Mochi
+      </div>
+      <div class="btn-outline">View full history</div>
+    </div>
+
+    <div class="tabbar">
+      <div class="tab tab-off">
+        <svg width="26" height="22" viewBox="0 0 26 22" fill="none">
+          <path d="M2 15.5Q2 12 6 12h3.5l2.5-6h3c2.5 0 4 1.8 4.5 3.5l.8 2.5c.4 1-.1 2.5-1.2 2.5H3.2C2.1 14.5 1.7 16.2 2 17" stroke="var(--t3)" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M10 12l1.5-4" stroke="var(--t3)" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M6 12.5l1-1.5" stroke="var(--t3)" stroke-width="1.3" stroke-linecap="round"/>
+          <path d="M2 17.5h22" stroke="var(--t3)" stroke-width="1.65" stroke-linecap="round"/>
+          <path d="M13 8.5l2.5 1M15.5 7l2 1.5" stroke="var(--t3)" stroke-width="1.1" stroke-linecap="round" opacity=".7"/>
+          <path d="M2 17.5c0 1 .7 1.8 1.5 1.8h18c.8 0 1.5-.8 1.5-1.8" stroke="var(--t3)" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+        <div class="tlbl">Walk</div>
+      </div>
+      <div class="tab tab-off" style="position:relative;">
+        <div style="position:relative;display:inline-block;">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="var(--t3)" stroke-width="1.65" stroke-linecap="round"><path d="M5.5 9.5a5.5 5.5 0 0111 0v3.5l2 2H3.5l2-2V9.5z"/><path d="M9 18.5a2 2 0 004 0"/></svg>
+          <div style="position:absolute;top:-2px;right:-3px;width:8px;height:8px;border-radius:50%;background:#E53935;border:1.5px solid var(--bg);"></div>
+        </div>
+        <div class="tlbl">Alerts</div>
+      </div>
+      <div class="fab-wrap">
+        <div class="fab-outer">
+          <div class="fab-inner">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+              <defs>
+                <radialGradient id="fp2" cx="35%" cy="30%" r="65%"><stop offset="0%" stop-color="rgba(255,255,255,1)"/><stop offset="100%" stop-color="rgba(220,200,195,1)"/></radialGradient>
+                <radialGradient id="ft2" cx="35%" cy="30%" r="65%"><stop offset="0%" stop-color="rgba(255,255,255,.98)"/><stop offset="100%" stop-color="rgba(210,190,186,.95)"/></radialGradient>
+              </defs>
+              <ellipse cx="9.5" cy="10.5" rx="3.2" ry="4" fill="url(#ft2)"/>
+              <ellipse cx="16" cy="8.5" rx="3.4" ry="4.2" fill="url(#ft2)"/>
+              <ellipse cx="22.5" cy="10.5" rx="3.2" ry="4" fill="url(#ft2)"/>
+              <ellipse cx="27" cy="16" rx="2.8" ry="3.6" fill="url(#ft2)"/>
+              <ellipse cx="9.5" cy="13.5" rx="3.2" ry="1.2" fill="rgba(100,60,40,.12)"/>
+              <ellipse cx="16" cy="11.7" rx="3.4" ry="1.3" fill="rgba(100,60,40,.12)"/>
+              <ellipse cx="22.5" cy="13.5" rx="3.2" ry="1.2" fill="rgba(100,60,40,.12)"/>
+              <ellipse cx="27" cy="18.8" rx="2.8" ry="1.1" fill="rgba(100,60,40,.1)"/>
+              <ellipse cx="16.5" cy="22.5" rx="8.5" ry="6.5" fill="url(#fp2)"/>
+              <ellipse cx="16.5" cy="27.5" rx="8.5" ry="2.5" fill="rgba(100,60,40,.14)"/>
+              <ellipse cx="13.5" cy="19.5" rx="4" ry="2.8" fill="rgba(255,255,255,.45)"/>
+              <ellipse cx="15" cy="24" rx="3.5" ry="2.2" fill="rgba(140,100,90,.07)"/>
+              <ellipse cx="20" cy="22" rx="2.5" ry="1.8" fill="rgba(140,100,90,.06)"/>
+            </svg>
+          </div>
+        </div>
+        <div class="fab-lbl">Home</div>
+      </div>
+      <div class="tab tab-off">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="var(--t3)" stroke-width="1.65" stroke-linecap="round"><rect x="2.5" y="4.5" width="17" height="15" rx="3"/><path d="M15 2.5v4M7 2.5v4M2.5 9.5h17"/><circle cx="7" cy="13" r="1" fill="var(--t3)" stroke="none"/><circle cx="11" cy="13" r="1" fill="var(--t3)" stroke="none"/><circle cx="15" cy="13" r="1" fill="var(--t3)" stroke="none"/><circle cx="7" cy="17" r="1" fill="var(--t3)" stroke="none"/><circle cx="11" cy="17" r="1" fill="var(--t3)" stroke="none"/></svg>
+        <div class="tlbl">Schedule</div>
+      </div>
+      <div class="tab tab-on">
+        <svg width="24" height="22" viewBox="0 0 24 22" fill="none">
+          <path d="M3 9h18" stroke="var(--green)" stroke-width="1.65" stroke-linecap="round"/>
+          <path d="M4 9c.3 5 2.5 8.5 8 9 5.5-.5 7.7-4 8-9" stroke="var(--green)" stroke-width="1.65" stroke-linecap="round"/>
+          <path d="M2 19.5h20" stroke="var(--green)" stroke-width="1.8" stroke-linecap="round"/>
+          <ellipse cx="9" cy="13" rx="1.4" ry="1" fill="var(--green)"/>
+          <ellipse cx="12" cy="14.5" rx="1.4" ry="1" fill="var(--green)"/>
+          <ellipse cx="15" cy="13" rx="1.4" ry="1" fill="var(--green)"/>
+          <ellipse cx="12" cy="5.5" rx="1.2" ry=".9" fill="var(--green)" opacity=".6"/>
+          <ellipse cx="10.2" cy="4" rx=".85" ry="1.05" fill="var(--green)" opacity=".55"/>
+          <ellipse cx="13.8" cy="4" rx=".85" ry="1.05" fill="var(--green)" opacity=".55"/>
+          <ellipse cx="9.4" cy="2.7" rx=".8" ry=".95" fill="var(--green)" opacity=".5"/>
+          <ellipse cx="14.6" cy="2.7" rx=".8" ry=".95" fill="var(--green)" opacity=".5"/>
+        </svg>
+        <div class="tlbl" style="color:var(--green);font-weight:700;">Profile</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
