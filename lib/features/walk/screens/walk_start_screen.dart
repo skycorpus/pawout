@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../../core/constants/routes.dart';
 import '../../dog_profile/models/dog_model.dart';
 import '../../dog_profile/providers/dog_provider.dart';
@@ -48,11 +49,14 @@ class _WalkStartScreenState extends State<WalkStartScreen> {
                   const Icon(Icons.pets, size: 80, color: Color(0xFFFF6B9D)),
                   const SizedBox(height: 16),
                   const Text(
-                    '등록된 강아지가 없어요',
+                    '등록된 강아지가 없습니다.',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
-                  const Text('강아지를 먼저 등록해주세요', style: TextStyle(color: Colors.grey)),
+                  const Text(
+                    '먼저 강아지를 등록해주세요.',
+                    style: TextStyle(color: Colors.grey),
+                  ),
                   const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: () => Navigator.pushNamed(context, AppRoutes.dogList),
@@ -68,7 +72,7 @@ class _WalkStartScreenState extends State<WalkStartScreen> {
           }
 
           return Padding(
-            padding: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.all(24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -77,8 +81,6 @@ class _WalkStartScreenState extends State<WalkStartScreen> {
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 24),
-
-                // 강아지 선택 목록
                 Expanded(
                   child: ListView.builder(
                     itemCount: dogProvider.dogs.length,
@@ -112,8 +114,11 @@ class _WalkStartScreenState extends State<WalkStartScreen> {
                                     ? NetworkImage(dog.profileImageUrl!)
                                     : null,
                                 child: dog.profileImageUrl == null
-                                    ? const Icon(Icons.pets,
-                                        color: Color(0xFFFF6B9D), size: 28)
+                                    ? const Icon(
+                                        Icons.pets,
+                                        color: Color(0xFFFF6B9D),
+                                        size: 28,
+                                      )
                                     : null,
                               ),
                               const SizedBox(width: 16),
@@ -124,8 +129,9 @@ class _WalkStartScreenState extends State<WalkStartScreen> {
                                     Text(
                                       dog.name,
                                       style: const TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold),
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                     Text(
                                       '${dog.breed} · ${dog.age}살',
@@ -135,8 +141,10 @@ class _WalkStartScreenState extends State<WalkStartScreen> {
                                 ),
                               ),
                               if (isSelected)
-                                const Icon(Icons.check_circle,
-                                    color: Color(0xFFFF6B9D)),
+                                const Icon(
+                                  Icons.check_circle,
+                                  color: Color(0xFFFF6B9D),
+                                ),
                             ],
                           ),
                         ),
@@ -144,36 +152,32 @@ class _WalkStartScreenState extends State<WalkStartScreen> {
                     },
                   ),
                 ),
-
-                // 에러 메시지
                 Consumer<WalkProvider>(
                   builder: (context, walkProvider, _) {
-                    if (walkProvider.errorMessage != null) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: Text(
-                          walkProvider.errorMessage!,
-                          style: const TextStyle(color: Colors.red),
-                          textAlign: TextAlign.center,
-                        ),
-                      );
+                    if (walkProvider.errorMessage == null) {
+                      return const SizedBox.shrink();
                     }
-                    return const SizedBox.shrink();
+
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Text(
+                        walkProvider.errorMessage!,
+                        style: const TextStyle(color: Colors.red),
+                        textAlign: TextAlign.center,
+                      ),
+                    );
                   },
                 ),
-
-                // 시작 버튼
                 Consumer<WalkProvider>(
                   builder: (context, walkProvider, _) {
                     return ElevatedButton(
                       onPressed: _selectedDog == null || walkProvider.isLoading
                           ? null
                           : () async {
-                              final success = await walkProvider
-                                  .startWalk(_selectedDog!.id!);
+                              final success =
+                                  await walkProvider.startWalk(_selectedDog!.id!);
                               if (success && mounted) {
-                                Navigator.pushNamed(
-                                    context, AppRoutes.walkActive);
+                                Navigator.pushNamed(context, AppRoutes.walkActive);
                               }
                             },
                       style: ElevatedButton.styleFrom(
@@ -182,12 +186,15 @@ class _WalkStartScreenState extends State<WalkStartScreen> {
                         disabledBackgroundColor: Colors.grey.shade300,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16)),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
                       ),
                       child: const Text(
                         '산책 시작!',
                         style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     );
                   },

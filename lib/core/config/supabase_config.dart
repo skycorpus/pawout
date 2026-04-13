@@ -1,14 +1,22 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SupabaseConfig {
-  // TODO: Supabase 프로젝트 생성 후 아래 값 입력
-  static const String supabaseUrl = 'YOUR_SUPABASE_URL';
-  static const String supabaseAnonKey = 'YOUR_SUPABASE_ANON_KEY';
+  static const String _supabaseUrl =
+      String.fromEnvironment('SUPABASE_URL', defaultValue: '');
+  static const String _supabaseAnonKey =
+      String.fromEnvironment('SUPABASE_ANON_KEY', defaultValue: '');
 
   static Future<void> initialize() async {
+    if (_supabaseUrl.isEmpty || _supabaseAnonKey.isEmpty) {
+      throw StateError(
+        'Missing Supabase configuration. '
+        'Provide SUPABASE_URL and SUPABASE_ANON_KEY via --dart-define.',
+      );
+    }
+
     await Supabase.initialize(
-      url: supabaseUrl,
-      anonKey: supabaseAnonKey,
+      url: _supabaseUrl,
+      anonKey: _supabaseAnonKey,
       authOptions: const FlutterAuthClientOptions(
         authFlowType: AuthFlowType.pkce,
       ),
@@ -16,5 +24,4 @@ class SupabaseConfig {
   }
 }
 
-// Supabase 클라이언트 접근용 헬퍼
 final supabase = Supabase.instance.client;

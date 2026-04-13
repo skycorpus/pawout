@@ -1,11 +1,22 @@
 import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:pedometer/pedometer.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../models/walk_model.dart';
+import '../repositories/walk_repository.dart';
+import '../services/walk_metrics_service.dart';
 
 class WalkProvider extends ChangeNotifier {
+  WalkProvider({
+    WalkRepository? repository,
+    WalkMetricsService? metricsService,
+  })  : _repository = repository ?? WalkRepository(),
+        _metricsService = metricsService ?? const WalkMetricsService();
+
+  final WalkRepository _repository;
+  final WalkMetricsService _metricsService;
   bool _isWalking = false;
   int? _currentDogId;
   int? _currentWalkId;
@@ -21,11 +32,15 @@ class WalkProvider extends ChangeNotifier {
   int _initialStepCount = 0;
   bool _stepCountInitialized = false;
   Position? _lastPosition;
+  WalkMetricsState _metricsState = const WalkMetricsState(
+    distanceKm: 0,
+    routePoints: [],
+    lastLatitude: null,
+    lastLongitude: null,
+  );
   StreamSubscription<StepCount>? _stepSub;
   StreamSubscription<Position>? _posSub;
   Timer? _timer;
-
-  final _supabase = Supabase.instance.client;
 
   bool get isWalking => _isWalking;
   int? get currentDogId => _currentDogId;
@@ -36,17 +51,33 @@ class WalkProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  Future<bool> startWalk(int dogId) async {
-    if (_isWalking) return false;
+  void _resetActiveWalkState() {
+    _isWalking = false;
+    _currentDogId = null;
+    _currentWalkId = null;
+    _startTime = null;
+    _steps = 0;
+    _distanceKm = 0.0;
+    _elapsed = Duration.zero;
+    _routePoints = [];
+    _metricsState = _metricsService.initialState();
+    _lastPosition = null;
+    _initialStepCount = 0;
+    _stepCountInitialized = false;
+  }
 
-    // 위치 권한 확인
-    LocationPermission perm = await Geolocator.checkPermission();
-    if (perm == LocationPermission.denied) {
-      perm = await Geolocator.requestPermission();
+  Future<bool> startWalk(int dogId) async {
+    if (_isWalking) {
+      return false;
     }
-    if (perm == LocationPermission.denied ||
-        perm == LocationPermission.deniedForever) {
-      _errorMessage = '위치 권한이 필요합니다. 설정에서 허용해주세요.';
+
+    var permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
+      _errorMessage = 'Location permission is required.';
       notifyListeners();
       return false;
     }
@@ -58,35 +89,32 @@ class WalkProvider extends ChangeNotifier {
     _distanceKm = 0.0;
     _elapsed = Duration.zero;
     _routePoints = [];
+    _metricsState = _metricsService.initialState();
     _lastPosition = null;
     _initialStepCount = 0;
     _stepCountInitialized = false;
     _errorMessage = null;
     notifyListeners();
 
-    // Supabase에 산책 시작 기록
     try {
-      final response = await _supabase.from('walks').insert({
-        'dog_id': dogId,
-        'start_time': _startTime!.toIso8601String(),
-      }).select().single();
-      _currentWalkId = response['id'] as int;
+      _currentWalkId = await _repository.createWalk(
+        dogId: dogId,
+        startTime: _startTime!,
+      );
     } catch (e) {
       _errorMessage = e.toString();
-      _isWalking = false;
+      _resetActiveWalkState();
       notifyListeners();
       return false;
     }
 
-    // 타이머 (1초마다 경과시간 업데이트)
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       _elapsed = DateTime.now().difference(_startTime!);
       notifyListeners();
     });
 
-    // 걸음수 센서
     _stepSub = Pedometer.stepCountStream.listen(
-      (StepCount event) {
+      (event) {
         if (!_stepCountInitialized) {
           _initialStepCount = event.steps;
           _stepCountInitialized = true;
@@ -94,28 +122,24 @@ class WalkProvider extends ChangeNotifier {
         _steps = event.steps - _initialStepCount;
         notifyListeners();
       },
-      onError: (_) {}, // 에뮬레이터 등 센서 없는 기기 무시
+      onError: (_) {},
     );
 
-    // GPS 위치 추적
     _posSub = Geolocator.getPositionStream(
       locationSettings: const LocationSettings(
         accuracy: LocationAccuracy.high,
-        distanceFilter: 5, // 5m 이상 이동 시 업데이트
+        distanceFilter: 5,
       ),
     ).listen(
-      (Position pos) {
-        if (_lastPosition != null) {
-          final meters = Geolocator.distanceBetween(
-            _lastPosition!.latitude,
-            _lastPosition!.longitude,
-            pos.latitude,
-            pos.longitude,
-          );
-          _distanceKm += meters / 1000;
-        }
+      (pos) {
+        _metricsState = _metricsService.appendPoint(
+          current: _metricsState,
+          latitude: pos.latitude,
+          longitude: pos.longitude,
+        );
+        _distanceKm = _metricsState.distanceKm;
+        _routePoints = _metricsState.routePoints;
         _lastPosition = pos;
-        _routePoints.add({'lat': pos.latitude, 'lng': pos.longitude});
         notifyListeners();
       },
       onError: (_) {},
@@ -125,7 +149,9 @@ class WalkProvider extends ChangeNotifier {
   }
 
   Future<bool> stopWalk() async {
-    if (!_isWalking || _currentWalkId == null) return false;
+    if (!_isWalking || _currentWalkId == null || _startTime == null) {
+      return false;
+    }
 
     _timer?.cancel();
     await _stepSub?.cancel();
@@ -134,12 +160,13 @@ class WalkProvider extends ChangeNotifier {
     final endTime = DateTime.now();
 
     try {
-      await _supabase.from('walks').update({
-        'end_time': endTime.toIso8601String(),
-        'distance_km': double.parse(_distanceKm.toStringAsFixed(2)),
-        'steps': _steps,
-        'route_points': _routePoints,
-      }).eq('id', _currentWalkId!);
+      await _repository.completeWalk(
+        walkId: _currentWalkId!,
+        endTime: endTime,
+        distanceKm: _distanceKm,
+        steps: _steps,
+        routePoints: _routePoints,
+      );
 
       _walks.insert(
         0,
@@ -150,13 +177,11 @@ class WalkProvider extends ChangeNotifier {
           endTime: endTime,
           distanceKm: _distanceKm,
           steps: _steps,
-          routePoints: _routePoints,
+          routePoints: List.unmodifiable(_routePoints),
         ),
       );
 
-      _isWalking = false;
-      _currentDogId = null;
-      _currentWalkId = null;
+      _resetActiveWalkState();
       notifyListeners();
       return true;
     } catch (e) {
@@ -167,23 +192,19 @@ class WalkProvider extends ChangeNotifier {
   }
 
   Future<void> fetchWalks(List<int> dogIds) async {
-    if (dogIds.isEmpty) return;
+    if (dogIds.isEmpty) {
+      return;
+    }
+
     _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
 
     try {
-      final response = await _supabase
-          .from('walks')
-          .select()
-          .inFilter('dog_id', dogIds)
-          .not('end_time', 'is', null)
-          .order('start_time', ascending: false);
-
-      _walks = (response as List).map((e) => Walk.fromJson(e)).toList();
-      _isLoading = false;
-      notifyListeners();
+      _walks = await _repository.fetchWalks(dogIds);
     } catch (e) {
       _errorMessage = e.toString();
+    } finally {
       _isLoading = false;
       notifyListeners();
     }

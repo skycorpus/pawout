@@ -1,10 +1,14 @@
 import 'package:flutter/foundation.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../models/common_code_model.dart';
+import '../repositories/common_code_repository.dart';
 
 class CommonCodeProvider extends ChangeNotifier {
+  CommonCodeProvider({CommonCodeRepository? repository})
+      : _repository = repository ?? CommonCodeRepository();
+
+  final CommonCodeRepository _repository;
   final Map<String, List<CommonCode>> _codes = {};
-  final _supabase = Supabase.instance.client;
 
   List<CommonCode> getGroup(String groupCode) => _codes[groupCode] ?? [];
 
@@ -13,22 +17,17 @@ class CommonCodeProvider extends ChangeNotifier {
     try {
       return list.firstWhere((c) => c.code == code).codeName;
     } catch (_) {
-      return code; // 매핑 없으면 code 그대로 표시
+      return code;
     }
   }
 
   Future<void> fetchGroup(String groupCode) async {
-    if (_codes.containsKey(groupCode)) return; // 이미 로드된 경우 스킵
+    if (_codes.containsKey(groupCode)) {
+      return;
+    }
 
     try {
-      final response = await _supabase
-          .from('common_codes')
-          .select()
-          .eq('group_code', groupCode)
-          .order('sort_order');
-
-      _codes[groupCode] =
-          (response as List).map((e) => CommonCode.fromJson(e)).toList();
+      _codes[groupCode] = await _repository.fetchGroup(groupCode);
       notifyListeners();
     } catch (_) {}
   }

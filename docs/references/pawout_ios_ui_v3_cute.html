@@ -1,0 +1,480 @@
+
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,'SF Pro Display',sans-serif;}
+  :root{
+    --bg:#FFF8E1;
+    --green:#4CAF50;--green-dk:#388E3C;--green-lt:#E8F5E9;
+    --brown:#8D6E63;--brown-dk:#6D4C41;--brown-lt:#EFEBE9;--brown-mid:#BCAAA4;
+    --white:#FFFFFF;--t1:#1C1C1E;--t2:#6C6C70;--t3:#AEAEB2;
+    --r-md:16px;--r-lg:24px;--r-pill:999px;
+  }
+  @keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.5);opacity:.5}}
+  @keyframes pawFloat{0%,100%{transform:translateY(0) rotate(-12deg)}50%{transform:translateY(-4px) rotate(-12deg)}}
+  .pulse-dot{animation:pulse 2s ease-in-out infinite;}
+
+  .wrap{display:flex;gap:32px;align-items:flex-start;justify-content:center;padding:28px 20px;background:#EDE9E0;border-radius:20px;}
+  .pw{display:flex;flex-direction:column;align-items:center;}
+  .slbl{font-size:11px;font-weight:600;color:#999;letter-spacing:.6px;text-transform:uppercase;margin-bottom:10px;}
+  .phone{width:360px;height:760px;background:var(--bg);border-radius:46px;padding:52px 0 28px;box-shadow:0 0 0 10px #1C1C1E,0 0 0 12px #3A3A3C,0 28px 70px rgba(0,0,0,0.28);overflow:hidden;display:flex;flex-direction:column;position:relative;}
+  .notch{position:absolute;top:14px;left:50%;transform:translateX(-50%);width:110px;height:30px;background:#1C1C1E;border-radius:18px;z-index:10;}
+  .sbar{display:flex;justify-content:space-between;align-items:center;padding:0 26px 10px;font-size:12px;font-weight:600;color:var(--t1);flex-shrink:0;}
+  .scroll{flex:1;overflow-y:auto;padding:0 14px 20px;scrollbar-width:none;}
+  .scroll::-webkit-scrollbar{display:none;}
+
+  .nav{display:flex;justify-content:space-between;align-items:center;padding:6px 2px 14px;}
+  .nav-sub{font-size:12px;color:var(--t2);margin-bottom:1px;}
+  .nav-title{font-size:27px;font-weight:700;color:var(--t1);letter-spacing:-.5px;display:flex;align-items:center;gap:6px;}
+  .ava{width:38px;height:38px;border-radius:50%;background:var(--brown);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:white;}
+
+  /* Hero */
+  .hero{background:var(--green);border-radius:var(--r-lg);padding:20px;margin-bottom:14px;position:relative;overflow:hidden;}
+  .hero-paw{position:absolute;right:-10px;bottom:-10px;opacity:.13;animation:pawFloat 3s ease-in-out infinite;}
+  .hero-circle{position:absolute;top:-28px;right:60px;width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,0.08);}
+  .hero-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,0.2);border-radius:var(--r-pill);padding:4px 10px;font-size:11px;font-weight:600;color:white;margin-bottom:10px;}
+  .hero-title{font-size:19px;font-weight:700;color:white;letter-spacing:-.3px;margin-bottom:3px;}
+  .hero-sub{font-size:12px;color:rgba(255,255,255,0.72);margin-bottom:16px;line-height:1.5;}
+  .hero-row{display:flex;align-items:center;justify-content:space-between;}
+  .hero-btn{display:inline-flex;align-items:center;gap:6px;background:white;color:var(--green-dk);border-radius:var(--r-pill);padding:9px 16px;font-size:13px;font-weight:700;}
+  .hero-stat{color:rgba(255,255,255,0.85);font-size:12px;font-weight:500;}
+  .hero-stat span{font-size:18px;font-weight:700;color:white;display:block;margin-top:1px;}
+
+  /* Progress bar */
+  .prog-card{background:var(--white);border-radius:var(--r-md);padding:14px 16px;margin-bottom:14px;border:0.5px solid rgba(0,0,0,0.06);}
+  .prog-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+  .prog-lbl{font-size:13px;font-weight:600;color:var(--t1);}
+  .prog-pct{font-size:13px;font-weight:700;color:var(--green);}
+  .prog-track{height:8px;background:#F0F0F0;border-radius:99px;overflow:hidden;}
+  .prog-fill{height:100%;background:linear-gradient(90deg,var(--green),#81C784);border-radius:99px;width:62%;}
+  .prog-sub{font-size:11px;color:var(--t3);margin-top:6px;}
+
+  /* Section */
+  .sec{display:flex;align-items:center;gap:6px;font-size:18px;font-weight:700;color:var(--t1);letter-spacing:-.3px;margin:18px 0 10px;}
+
+  /* Dog cards */
+  .hsc{display:flex;gap:10px;overflow-x:auto;margin:0 -14px;padding-left:14px;padding-bottom:4px;scrollbar-width:none;}
+  .hsc::-webkit-scrollbar{display:none;}
+  .dcard{flex-shrink:0;width:118px;background:var(--white);border-radius:var(--r-md);overflow:hidden;border:0.5px solid rgba(0,0,0,0.06);}
+  .dcard-top{height:5px;}
+  .dcard-body{padding:12px 12px 14px;}
+  .dava{width:52px;height:52px;border-radius:16px;margin-bottom:10px;display:flex;align-items:center;justify-content:center;}
+  .dname{font-size:14px;font-weight:700;color:var(--t1);margin-bottom:1px;}
+  .dbreed{font-size:10px;color:var(--t3);margin-bottom:8px;}
+  .dstatus{display:inline-flex;align-items:center;gap:4px;border-radius:var(--r-pill);padding:3px 8px;font-size:10px;font-weight:600;}
+  .s-active{background:var(--green-lt);color:var(--green-dk);}
+  .s-rest{background:var(--brown-lt);color:var(--brown-dk);}
+
+  /* Quick actions */
+  .qgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;}
+  .qitem{background:var(--white);border-radius:var(--r-md);padding:13px 6px 11px;text-align:center;border:0.5px solid rgba(0,0,0,0.06);}
+  .qicon{width:40px;height:40px;border-radius:12px;margin:0 auto 7px;display:flex;align-items:center;justify-content:center;}
+  .qlbl{font-size:10px;font-weight:600;color:var(--t2);}
+
+  /* Activity */
+  .acard{background:var(--white);border-radius:var(--r-md);padding:12px 14px;border:0.5px solid rgba(0,0,0,0.06);margin-bottom:8px;display:flex;align-items:center;gap:12px;}
+  .aicon{width:40px;height:40px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+  .ainfo{flex:1;}
+  .atitle{font-size:13px;font-weight:600;color:var(--t1);margin-bottom:1px;}
+  .asub{font-size:11px;color:var(--t3);}
+  .atime{font-size:11px;color:var(--t3);}
+  .chev{font-size:14px;color:var(--t3);margin-left:2px;}
+
+  /* Tab bar */
+  .tabbar{display:flex;justify-content:space-around;align-items:flex-start;padding:10px 4px 0;background:rgba(255,248,225,0.95);border-top:0.5px solid rgba(0,0,0,0.08);flex-shrink:0;}
+  .tab{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:44px;}
+  .tlbl{font-size:10px;font-weight:500;}
+  .tab-on .tlbl{color:var(--green);font-weight:700;}
+  .tab-off .tlbl{color:var(--t3);}
+
+  /* Profile screen */
+  .back{font-size:14px;font-weight:600;color:var(--green);padding:2px 2px 10px;}
+  .phero{background:var(--white);border-radius:var(--r-lg);padding:22px;text-align:center;border:0.5px solid rgba(0,0,0,0.06);margin-bottom:12px;position:relative;overflow:hidden;}
+  .phero-bg{position:absolute;right:-16px;top:-16px;opacity:.06;}
+  .pname{font-size:22px;font-weight:700;color:var(--t1);letter-spacing:-.3px;margin-top:10px;}
+  .pbreed{font-size:13px;color:var(--t2);margin-top:2px;}
+  .pbadge{display:inline-flex;align-items:center;gap:5px;background:var(--green-lt);border-radius:var(--r-pill);padding:5px 12px;margin-top:10px;font-size:11px;font-weight:600;color:var(--green-dk);}
+  .srow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
+  .scard{background:var(--white);border-radius:var(--r-md);padding:14px 8px;text-align:center;border:0.5px solid rgba(0,0,0,0.06);}
+  .snum{font-size:20px;font-weight:700;}
+  .slb{font-size:9px;color:var(--t3);font-weight:500;margin-top:2px;line-height:1.3;}
+  .brown-strip{background:var(--brown-lt);border-radius:var(--r-md);padding:13px 14px;margin-bottom:12px;display:flex;align-items:center;gap:12px;border:0.5px solid rgba(141,110,99,0.15);}
+  .bstrip-icon{width:36px;height:36px;border-radius:10px;background:var(--brown);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .hlist{background:var(--white);border-radius:var(--r-md);border:0.5px solid rgba(0,0,0,0.06);overflow:hidden;margin-bottom:12px;}
+  .hrow{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;border-bottom:0.5px solid rgba(0,0,0,0.05);}
+  .hrow:last-child{border-bottom:none;}
+  .hkey{font-size:13px;color:var(--t2);}
+  .hval{font-size:13px;font-weight:600;color:var(--t1);}
+  .btn-primary{background:var(--green);color:white;border-radius:var(--r-pill);padding:15px;font-size:15px;font-weight:700;text-align:center;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px;}
+  .btn-outline{background:var(--white);color:var(--brown-dk);border-radius:var(--r-pill);padding:14px;font-size:15px;font-weight:600;text-align:center;border:1.5px solid var(--brown-mid);}
+</style>
+
+<div class="wrap">
+
+  <!-- SCREEN 1 -->
+  <div class="pw">
+    <div class="slbl">Home</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="sbar">
+        <span>9:41</span>
+        <div style="display:flex;align-items:center;gap:4px;">
+          <svg width="15" height="11" fill="none" viewBox="0 0 15 11"><rect x="0" y="4" width="2.5" height="7" rx="1" fill="#1C1C1E"/><rect x="4" y="2.5" width="2.5" height="8.5" rx="1" fill="#1C1C1E"/><rect x="8" y="0" width="2.5" height="11" rx="1" fill="#1C1C1E"/><rect x="12" y="0" width="2.5" height="11" rx="1" fill="#1C1C1E" opacity=".25"/></svg>
+          <svg width="23" height="11" fill="none" viewBox="0 0 23 11"><rect x=".5" y=".5" width="19" height="10" rx="3.5" stroke="#1C1C1E" stroke-opacity=".3"/><rect x="1.5" y="1.5" width="15" height="8" rx="2.5" fill="#1C1C1E"/><path d="M21 3.8C21.8 4.1 22.5 4.7 22.5 5.5S21.8 6.9 21 7.2V3.8z" fill="#1C1C1E" opacity=".4"/></svg>
+        </div>
+      </div>
+      <div class="scroll">
+        <div class="nav">
+          <div>
+            <div class="nav-sub">Good morning 👋</div>
+            <div class="nav-title">
+              PawOut
+              <!-- paw icon in title -->
+              <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><ellipse cx="11" cy="16" rx="5.5" ry="4" fill="var(--brown)" opacity=".15"/><ellipse cx="11" cy="15.5" rx="4" ry="2.8" fill="var(--brown)"/><ellipse cx="6.5" cy="11.5" rx="2" ry="2.6" fill="var(--brown)"/><ellipse cx="15.5" cy="11.5" rx="2" ry="2.6" fill="var(--brown)"/><ellipse cx="8.5" cy="8.5" rx="1.8" ry="2.2" fill="var(--brown)"/><ellipse cx="13.5" cy="8.5" rx="1.8" ry="2.2" fill="var(--brown)"/></svg>
+            </div>
+          </div>
+          <div class="ava">J</div>
+        </div>
+
+        <!-- Hero card -->
+        <div class="hero">
+          <div class="hero-circle"></div>
+          <!-- big paw watermark -->
+          <div class="hero-paw">
+            <svg width="110" height="110" viewBox="0 0 110 110" fill="none"><ellipse cx="55" cy="78" rx="27" ry="20" fill="white"/><ellipse cx="32" cy="57" rx="10" ry="13" fill="white"/><ellipse cx="78" cy="57" rx="10" ry="13" fill="white"/><ellipse cx="42" cy="42" rx="9" ry="11" fill="white"/><ellipse cx="68" cy="42" rx="9" ry="11" fill="white"/></svg>
+          </div>
+          <div class="hero-badge">
+            <svg class="pulse-dot" width="6" height="6" viewBox="0 0 6 6"><circle cx="3" cy="3" r="3" fill="white"/></svg>
+            Active now
+          </div>
+          <div class="hero-title">Time for Mochi's walk!</div>
+          <div class="hero-sub">Last walked 6 hours ago · 0.8 mi goal</div>
+          <div class="hero-row">
+            <div class="hero-btn">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="var(--green-dk)" stroke-width="2" stroke-linecap="round"><path d="M2 7h10M8 3l4 4-4 4"/></svg>
+              Start walk
+            </div>
+            <div class="hero-stat">Today's steps<span>4,280</span></div>
+          </div>
+        </div>
+
+        <!-- Today progress -->
+        <div class="prog-card">
+          <div class="prog-top">
+            <div class="prog-lbl">Today's goal</div>
+            <div class="prog-pct">62%</div>
+          </div>
+          <div class="prog-track"><div class="prog-fill"></div></div>
+          <div class="prog-sub">Mochi walked 0.5 mi · 0.3 mi left to go</div>
+        </div>
+
+        <!-- My Dogs -->
+        <div class="sec">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><ellipse cx="8" cy="11.5" rx="4" ry="2.8" fill="var(--brown)" opacity=".7"/><ellipse cx="4.5" cy="8" rx="1.6" ry="2" fill="var(--brown)" opacity=".7"/><ellipse cx="11.5" cy="8" rx="1.6" ry="2" fill="var(--brown)" opacity=".7"/><ellipse cx="6" cy="5.5" rx="1.4" ry="1.8" fill="var(--brown)" opacity=".7"/><ellipse cx="10" cy="5.5" rx="1.4" ry="1.8" fill="var(--brown)" opacity=".7"/></svg>
+          My dogs
+        </div>
+        <div class="hsc">
+          <!-- Mochi: Shiba - pointy ears, fluffy -->
+          <div class="dcard">
+            <div class="dcard-top" style="background:var(--green);"></div>
+            <div class="dcard-body">
+              <div class="dava" style="background:var(--green-lt);">
+                <svg width="42" height="42" viewBox="0 0 42 42" fill="none">
+                  <!-- Shiba face -->
+                  <ellipse cx="21" cy="26" rx="13" ry="11" fill="#E8A87C"/>
+                  <!-- pointy ears -->
+                  <polygon points="10,18 13,8 18,18" fill="#C97D50"/>
+                  <polygon points="32,18 29,8 24,18" fill="#C97D50"/>
+                  <polygon points="11,18 13.5,11 17,18" fill="#F5C5A3"/>
+                  <polygon points="31,18 28.5,11 25,18" fill="#F5C5A3"/>
+                  <!-- face -->
+                  <ellipse cx="21" cy="28" rx="8" ry="6" fill="#F5C5A3"/>
+                  <!-- eyes -->
+                  <ellipse cx="17" cy="24" rx="2" ry="2.2" fill="#3D2B1F"/>
+                  <ellipse cx="25" cy="24" rx="2" ry="2.2" fill="#3D2B1F"/>
+                  <circle cx="17.7" cy="23.3" r=".7" fill="white"/>
+                  <circle cx="25.7" cy="23.3" r=".7" fill="white"/>
+                  <!-- nose -->
+                  <ellipse cx="21" cy="28.5" rx="2" ry="1.3" fill="#3D2B1F"/>
+                  <!-- blush -->
+                  <ellipse cx="14" cy="27" rx="2.5" ry="1.2" fill="#F4A0A0" opacity=".5"/>
+                  <ellipse cx="28" cy="27" rx="2.5" ry="1.2" fill="#F4A0A0" opacity=".5"/>
+                </svg>
+              </div>
+              <div class="dname">Mochi</div>
+              <div class="dbreed">Shiba Inu · 3y</div>
+              <div class="dstatus s-active">
+                <svg class="pulse-dot" width="5" height="5" viewBox="0 0 5 5"><circle cx="2.5" cy="2.5" r="2.5" fill="var(--green)"/></svg>
+                Active
+              </div>
+            </div>
+          </div>
+          <!-- Boba: Beagle - floppy ears -->
+          <div class="dcard">
+            <div class="dcard-top" style="background:var(--brown);"></div>
+            <div class="dcard-body">
+              <div class="dava" style="background:var(--brown-lt);">
+                <svg width="42" height="42" viewBox="0 0 42 42" fill="none">
+                  <!-- floppy ears -->
+                  <ellipse cx="11" cy="24" rx="5" ry="9" fill="#8D6E63" transform="rotate(-10 11 24)"/>
+                  <ellipse cx="31" cy="24" rx="5" ry="9" fill="#8D6E63" transform="rotate(10 31 24)"/>
+                  <!-- head -->
+                  <ellipse cx="21" cy="24" rx="12" ry="11" fill="#D4A574"/>
+                  <!-- white muzzle -->
+                  <ellipse cx="21" cy="29" rx="7" ry="5" fill="#F5E6D3"/>
+                  <!-- eyes -->
+                  <ellipse cx="17" cy="23" rx="2.2" ry="2.4" fill="#3D2B1F"/>
+                  <ellipse cx="25" cy="23" rx="2.2" ry="2.4" fill="#3D2B1F"/>
+                  <circle cx="17.8" cy="22.3" r=".8" fill="white"/>
+                  <circle cx="25.8" cy="22.3" r=".8" fill="white"/>
+                  <!-- nose -->
+                  <ellipse cx="21" cy="28" rx="2.2" ry="1.4" fill="#3D2B1F"/>
+                  <!-- blush -->
+                  <ellipse cx="13.5" cy="26.5" rx="2.5" ry="1.2" fill="#F4A0A0" opacity=".4"/>
+                  <ellipse cx="28.5" cy="26.5" rx="2.5" ry="1.2" fill="#F4A0A0" opacity=".4"/>
+                </svg>
+              </div>
+              <div class="dname">Boba</div>
+              <div class="dbreed">Beagle · 5y</div>
+              <div class="dstatus s-rest">
+                <svg width="5" height="5" viewBox="0 0 5 5"><circle cx="2.5" cy="2.5" r="2.5" fill="var(--brown)"/></svg>
+                Resting
+              </div>
+            </div>
+          </div>
+          <!-- Dubu: Poodle - curly/round -->
+          <div class="dcard">
+            <div class="dcard-top" style="background:#7986CB;"></div>
+            <div class="dcard-body">
+              <div class="dava" style="background:#EDE7F6;">
+                <svg width="42" height="42" viewBox="0 0 42 42" fill="none">
+                  <!-- poodle curly head -->
+                  <circle cx="21" cy="18" r="10" fill="#B39DDB"/>
+                  <!-- curly bits -->
+                  <circle cx="12" cy="20" r="4.5" fill="#B39DDB"/>
+                  <circle cx="30" cy="20" r="4.5" fill="#B39DDB"/>
+                  <circle cx="15" cy="14" r="4" fill="#B39DDB"/>
+                  <circle cx="27" cy="14" r="4" fill="#B39DDB"/>
+                  <circle cx="21" cy="11" r="4" fill="#B39DDB"/>
+                  <!-- face base -->
+                  <ellipse cx="21" cy="22" rx="8" ry="7" fill="#CE93D8"/>
+                  <!-- muzzle -->
+                  <ellipse cx="21" cy="26" rx="4.5" ry="3.5" fill="#E1BEE7"/>
+                  <!-- eyes -->
+                  <ellipse cx="17.5" cy="21" rx="1.8" ry="2" fill="#3D2B1F"/>
+                  <ellipse cx="24.5" cy="21" rx="1.8" ry="2" fill="#3D2B1F"/>
+                  <circle cx="18.1" cy="20.4" r=".6" fill="white"/>
+                  <circle cx="25.1" cy="20.4" r=".6" fill="white"/>
+                  <!-- nose -->
+                  <ellipse cx="21" cy="25" rx="1.8" ry="1.2" fill="#3D2B1F"/>
+                  <!-- blush -->
+                  <ellipse cx="14.5" cy="24" rx="2" ry="1" fill="#F48FB1" opacity=".5"/>
+                  <ellipse cx="27.5" cy="24" rx="2" ry="1" fill="#F48FB1" opacity=".5"/>
+                </svg>
+              </div>
+              <div class="dname">Dubu</div>
+              <div class="dbreed">Poodle · 2y</div>
+              <div class="dstatus s-active">
+                <svg class="pulse-dot" width="5" height="5" viewBox="0 0 5 5"><circle cx="2.5" cy="2.5" r="2.5" fill="var(--green)"/></svg>
+                Active
+              </div>
+            </div>
+          </div>
+          <div style="flex-shrink:0;width:10px;"></div>
+        </div>
+
+        <!-- Quick actions -->
+        <div class="sec">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--green)" stroke-width="1.6" stroke-linecap="round"><path d="M8 2v4M2 8h4M14 8h-4M8 14v-4"/><circle cx="8" cy="8" r="1.5" fill="var(--green)" stroke="none"/></svg>
+          Quick actions
+        </div>
+        <div class="qgrid">
+          <div class="qitem">
+            <div class="qicon" style="background:var(--green-lt);">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--green)" stroke-width="1.8" stroke-linecap="round"><path d="M4 16L10 4l6 12"/><path d="M6.5 11h7"/></svg>
+            </div>
+            <div class="qlbl">Walk</div>
+          </div>
+          <div class="qitem">
+            <div class="qicon" style="background:var(--brown-lt);">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--brown)" stroke-width="1.8" stroke-linecap="round"><path d="M5 9.5C5 7 7 5 10 5s5 2 5 4.5c0 3-2 5.5-5 6-3-.5-5-3-5-6z"/><path d="M10 5V3M7 4l1 1M13 4l-1 1"/></svg>
+            </div>
+            <div class="qlbl">Feed</div>
+          </div>
+          <div class="qitem">
+            <div class="qicon" style="background:#E3F2FD;">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#1976D2" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="5" width="12" height="11" rx="2"/><path d="M7 5V4a1 1 0 012 0v1M11 5V4a1 1 0 012 0v1M7 10h6M7 13h4"/></svg>
+            </div>
+            <div class="qlbl">Vet</div>
+          </div>
+          <div class="qitem">
+            <div class="qicon" style="background:#F3E5F5;">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#7B1FA2" stroke-width="1.8" stroke-linecap="round"><path d="M5 15l7-7M9 5l2 2-6 6-2-2 6-6zM15 9l-2-2 1-1a1.5 1.5 0 012 2l-1 1z"/></svg>
+            </div>
+            <div class="qlbl">Groom</div>
+          </div>
+        </div>
+
+        <!-- Activity -->
+        <div class="sec">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--t2)" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 1.5"/></svg>
+          Recent activity
+        </div>
+        <div class="acard">
+          <div class="aicon" style="background:var(--green-lt);">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--green)" stroke-width="1.8" stroke-linecap="round"><path d="M6 16l2-5 2 3 2-7 2 5"/><path d="M3 10h14"/></svg>
+          </div>
+          <div class="ainfo"><div class="atitle">Morning walk</div><div class="asub">Mochi · 1.2 mi · 24 min</div></div>
+          <div class="atime">8 am</div><div class="chev">›</div>
+        </div>
+        <div class="acard">
+          <div class="aicon" style="background:var(--brown-lt);">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--brown)" stroke-width="1.8" stroke-linecap="round"><path d="M6 10.5C6 8 7.8 6 10 6s4 2 4 4.5c0 2.8-1.8 5-4 5.5-2.2-.5-4-2.7-4-5.5z"/><path d="M10 6V4M7.5 4.8l.8.8M12.5 4.8l-.8.8"/></svg>
+          </div>
+          <div class="ainfo"><div class="atitle">Feeding time</div><div class="asub">Boba · 200g kibble</div></div>
+          <div class="atime">7 am</div><div class="chev">›</div>
+        </div>
+        <div class="acard">
+          <div class="aicon" style="background:#E3F2FD;">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#1976D2" stroke-width="1.8" stroke-linecap="round"><path d="M10 5v3M8.5 6.5h3"/><rect x="5" y="8" width="10" height="8" rx="2"/></svg>
+          </div>
+          <div class="ainfo"><div class="atitle">Medication</div><div class="asub">Dubu · Heartworm pill</div></div>
+          <div class="atime">7 am</div><div class="chev">›</div>
+        </div>
+      </div>
+
+      <div class="tabbar">
+        <div class="tab tab-on">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="var(--green)" stroke-width="1.8" stroke-linecap="round"><path d="M2 9L11 2l9 7v10a1 1 0 01-1 1H3a1 1 0 01-1-1V9z"/><path d="M8 21V12h6v9"/></svg>
+          <div class="tlbl">Home</div>
+        </div>
+        <div class="tab tab-off">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="var(--t3)" stroke-width="1.8" stroke-linecap="round"><path d="M5 17L11 5l6 12"/><path d="M7.5 12h7"/></svg>
+          <div class="tlbl">Walk</div>
+        </div>
+        <div class="tab tab-off">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="var(--t3)" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4" width="16" height="16" rx="2"/><path d="M15 2v4M7 2v4M3 10h16"/></svg>
+          <div class="tlbl">Schedule</div>
+        </div>
+        <div class="tab tab-off">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="var(--t3)" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="7" r="4"/><path d="M3 20c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+          <div class="tlbl">Profile</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 2: Dog Profile -->
+  <div class="pw">
+    <div class="slbl">Dog Profile</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="sbar">
+        <span>9:41</span>
+        <div style="display:flex;align-items:center;gap:4px;">
+          <svg width="23" height="11" fill="none" viewBox="0 0 23 11"><rect x=".5" y=".5" width="19" height="10" rx="3.5" stroke="#1C1C1E" stroke-opacity=".3"/><rect x="1.5" y="1.5" width="15" height="8" rx="2.5" fill="#1C1C1E"/></svg>
+        </div>
+      </div>
+      <div class="scroll">
+        <div class="back">‹ My dogs</div>
+
+        <!-- Profile hero -->
+        <div class="phero">
+          <!-- bg paw watermark -->
+          <div class="phero-bg">
+            <svg width="130" height="130" viewBox="0 0 130 130" fill="var(--green)"><ellipse cx="65" cy="92" rx="32" ry="24"/><ellipse cx="38" cy="67" rx="12" ry="16"/><ellipse cx="92" cy="67" rx="12" ry="16"/><ellipse cx="50" cy="48" rx="11" ry="14"/><ellipse cx="80" cy="48" rx="11" ry="14"/></svg>
+          </div>
+          <!-- Mochi avatar large -->
+          <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+            <ellipse cx="40" cy="52" rx="24" ry="20" fill="#E8A87C"/>
+            <polygon points="19,34 24,14 33,34" fill="#C97D50"/>
+            <polygon points="61,34 56,14 47,34" fill="#C97D50"/>
+            <polygon points="20.5,34 24.5,18 31,34" fill="#F5C5A3"/>
+            <polygon points="59.5,34 55.5,18 49,34" fill="#F5C5A3"/>
+            <ellipse cx="40" cy="55" rx="16" ry="12" fill="#F5C5A3"/>
+            <ellipse cx="32" cy="47" rx="4" ry="4.5" fill="#3D2B1F"/>
+            <ellipse cx="48" cy="47" rx="4" ry="4.5" fill="#3D2B1F"/>
+            <circle cx="33.5" cy="45.5" r="1.5" fill="white"/>
+            <circle cx="49.5" cy="45.5" r="1.5" fill="white"/>
+            <ellipse cx="40" cy="56" rx="3.5" ry="2.5" fill="#3D2B1F"/>
+            <ellipse cx="27" cy="52" rx="4.5" ry="2.2" fill="#F4A0A0" opacity=".5"/>
+            <ellipse cx="53" cy="52" rx="4.5" ry="2.2" fill="#F4A0A0" opacity=".5"/>
+            <!-- smile lines -->
+            <path d="M37 59 Q40 62 43 59" stroke="#C97D50" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+          </svg>
+          <div class="pname">Mochi</div>
+          <div class="pbreed">Shiba Inu · 3 years old</div>
+          <div class="pbadge">
+            <svg class="pulse-dot" width="7" height="7" viewBox="0 0 7 7"><circle cx="3.5" cy="3.5" r="3.5" fill="var(--green)"/></svg>
+            Active & healthy
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="srow">
+          <div class="scard">
+            <div class="snum" style="color:var(--green);">12</div>
+            <div class="slb">Walks this month</div>
+          </div>
+          <div class="scard">
+            <div class="snum" style="color:var(--t1);">8.4</div>
+            <div class="slb">Total miles</div>
+          </div>
+          <div class="scard">
+            <div class="snum" style="color:var(--brown);">4.8</div>
+            <div class="slb">Avg rating</div>
+          </div>
+        </div>
+
+        <!-- Grooming strip -->
+        <div class="brown-strip">
+          <div class="bstrip-icon">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round"><path d="M5 13l7-7M9 3l2 2-6 6-2-2 6-6zM15 9l-2-2 1-1a1.5 1.5 0 012 2l-1 1z"/></svg>
+          </div>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--brown-dk);">Grooming in 7 days</div>
+            <div style="font-size:11px;color:var(--brown-mid);margin-top:1px;">Apr 20 · Paws & Claws Studio</div>
+          </div>
+        </div>
+
+        <!-- Health -->
+        <div class="sec">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--t2)" stroke-width="1.5" stroke-linecap="round"><path d="M8 3C5 3 3 5 3 7.5c0 3.5 5 7 5 7s5-3.5 5-7C13 5 11 3 8 3z"/></svg>
+          Health
+        </div>
+        <div class="hlist">
+          <div class="hrow"><span class="hkey">Weight</span><span class="hval">7.2 kg</span></div>
+          <div class="hrow"><span class="hkey">Last vet visit</span><span class="hval">Mar 2026</span></div>
+          <div class="hrow"><span class="hkey">Vaccination</span><span class="hval" style="color:var(--green-dk);">Up to date ✓</span></div>
+          <div class="hrow"><span class="hkey">Next grooming</span><span class="hval" style="color:var(--brown);">Apr 20, 2026</span></div>
+          <div class="hrow"><span class="hkey">Food</span><span class="hval">Dry · 180g / day</span></div>
+        </div>
+
+        <!-- CTA -->
+        <div class="btn-primary">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><ellipse cx="9" cy="13" rx="5.5" ry="3.8" fill="white" opacity=".9"/><ellipse cx="4.5" cy="9" rx="2" ry="2.6" fill="white" opacity=".9"/><ellipse cx="13.5" cy="9" rx="2" ry="2.6" fill="white" opacity=".9"/><ellipse cx="6.5" cy="6" rx="1.8" ry="2.2" fill="white" opacity=".9"/><ellipse cx="11.5" cy="6" rx="1.8" ry="2.2" fill="white" opacity=".9"/></svg>
+          Start walk with Mochi
+        </div>
+        <div class="btn-outline">View full history</div>
+      </div>
+
+      <div class="tabbar">
+        <div class="tab tab-off">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="var(--t3)" stroke-width="1.8" stroke-linecap="round"><path d="M2 9L11 2l9 7v10a1 1 0 01-1 1H3a1 1 0 01-1-1V9z"/><path d="M8 21V12h6v9"/></svg>
+          <div class="tlbl">Home</div>
+        </div>
+        <div class="tab tab-off">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="var(--t3)" stroke-width="1.8" stroke-linecap="round"><path d="M5 17L11 5l6 12"/><path d="M7.5 12h7"/></svg>
+          <div class="tlbl">Walk</div>
+        </div>
+        <div class="tab tab-off">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="var(--t3)" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4" width="16" height="16" rx="2"/><path d="M15 2v4M7 2v4M3 10h16"/></svg>
+          <div class="tlbl">Schedule</div>
+        </div>
+        <div class="tab tab-on">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="var(--green)" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="7" r="4"/><path d="M3 20c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+          <div class="tlbl">Profile</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

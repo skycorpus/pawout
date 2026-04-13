@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../../core/constants/routes.dart';
-import '../providers/walk_provider.dart';
 import '../../ranking/providers/ranking_provider.dart';
+import '../providers/walk_provider.dart';
 
 class WalkActiveScreen extends StatelessWidget {
   const WalkActiveScreen({super.key});
@@ -42,11 +43,10 @@ class WalkActiveScreen extends StatelessWidget {
       final dogId = walkProvider.currentDogId;
       final steps = walkProvider.steps;
       final distanceKm = walkProvider.distanceKm;
-
       final success = await walkProvider.stopWalk();
+
       if (context.mounted) {
         if (success && dogId != null) {
-          // 랭킹 업데이트
           await context.read<RankingProvider>().updateDogRanking(
                 dogId: dogId,
                 steps: steps,
@@ -58,7 +58,9 @@ class WalkActiveScreen extends StatelessWidget {
         } else if (!success) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(context.read<WalkProvider>().errorMessage ?? '저장에 실패했습니다'),
+              content: Text(
+                context.read<WalkProvider>().errorMessage ?? '산책 종료에 실패했습니다.',
+              ),
               backgroundColor: Colors.red,
             ),
           );
@@ -72,7 +74,9 @@ class WalkActiveScreen extends StatelessWidget {
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) _confirmStop(context);
+        if (!didPop) {
+          _confirmStop(context);
+        }
       },
       child: Scaffold(
         backgroundColor: const Color(0xFFFF6B9D),
@@ -83,15 +87,14 @@ class WalkActiveScreen extends StatelessWidget {
                 children: [
                   const SizedBox(height: 40),
                   const Text(
-                    '산책 중 🐾',
+                    '산책 중',
                     style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w300),
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w300,
+                    ),
                   ),
                   const SizedBox(height: 8),
-
-                  // 경과 시간
                   Text(
                     _formatDuration(walkProvider.elapsed),
                     style: const TextStyle(
@@ -101,10 +104,7 @@ class WalkActiveScreen extends StatelessWidget {
                       letterSpacing: 2,
                     ),
                   ),
-
                   const SizedBox(height: 48),
-
-                  // 걸음수 / 거리
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 32),
                     child: Row(
@@ -123,10 +123,7 @@ class WalkActiveScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-
                   const Spacer(),
-
-                  // 종료 버튼
                   GestureDetector(
                     onTap: () => _confirmStop(context),
                     child: Container(
@@ -146,13 +143,17 @@ class WalkActiveScreen extends StatelessWidget {
                       child: const Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.stop_rounded,
-                              color: Color(0xFFFF6B9D), size: 40),
+                          Icon(
+                            Icons.stop_rounded,
+                            color: Color(0xFFFF6B9D),
+                            size: 40,
+                          ),
                           Text(
                             '종료',
                             style: TextStyle(
-                                color: Color(0xFFFF6B9D),
-                                fontWeight: FontWeight.bold),
+                              color: Color(0xFFFF6B9D),
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ],
                       ),
@@ -170,8 +171,12 @@ class WalkActiveScreen extends StatelessWidget {
 }
 
 class _StatCard extends StatelessWidget {
-  const _StatCard(
-      {required this.icon, required this.value, required this.label});
+  const _StatCard({
+    required this.icon,
+    required this.value,
+    required this.label,
+  });
+
   final IconData icon;
   final String value;
   final String label;
@@ -191,12 +196,15 @@ class _StatCard extends StatelessWidget {
           Text(
             value,
             style: const TextStyle(
-                color: Colors.white,
-                fontSize: 28,
-                fontWeight: FontWeight.bold),
+              color: Colors.white,
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          Text(label,
-              style: const TextStyle(color: Colors.white70, fontSize: 14)),
+          Text(
+            label,
+            style: const TextStyle(color: Colors.white70, fontSize: 14),
+          ),
         ],
       ),
     );

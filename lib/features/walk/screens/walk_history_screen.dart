@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/walk_provider.dart';
+
 import '../../dog_profile/providers/dog_provider.dart';
+import '../providers/walk_provider.dart';
 
 class WalkHistoryScreen extends StatefulWidget {
   const WalkHistoryScreen({super.key});
@@ -56,16 +57,17 @@ class _WalkHistoryScreenState extends State<WalkHistoryScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.directions_walk,
-                      size: 80, color: Color(0xFFFF6B9D)),
+                  Icon(Icons.directions_walk, size: 80, color: Color(0xFFFF6B9D)),
                   SizedBox(height: 16),
                   Text(
-                    '아직 산책 기록이 없어요',
+                    '아직 산책 기록이 없습니다.',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 8),
-                  Text('강아지와 첫 산책을 시작해보세요!',
-                      style: TextStyle(color: Colors.grey)),
+                  Text(
+                    '강아지와 첫 산책을 시작해보세요!',
+                    style: TextStyle(color: Colors.grey),
+                  ),
                 ],
               ),
             );
@@ -99,19 +101,19 @@ class _WalkHistoryScreenState extends State<WalkHistoryScreen> {
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.pets,
-                            color: Color(0xFFFF6B9D), size: 18),
+                        const Icon(Icons.pets, color: Color(0xFFFF6B9D), size: 18),
                         const SizedBox(width: 6),
                         Text(
                           dog?.name ?? '강아지',
                           style: const TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 16),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                         ),
                         const Spacer(),
                         Text(
                           _formatDate(walk.startTime),
-                          style: TextStyle(
-                              color: Colors.grey[600], fontSize: 13),
+                          style: TextStyle(color: Colors.grey[600], fontSize: 13),
                         ),
                       ],
                     ),
@@ -148,8 +150,12 @@ class _WalkHistoryScreenState extends State<WalkHistoryScreen> {
 }
 
 class _HistoryStat extends StatelessWidget {
-  const _HistoryStat(
-      {required this.icon, required this.value, required this.label});
+  const _HistoryStat({
+    required this.icon,
+    required this.value,
+    required this.label,
+  });
+
   final IconData icon;
   final String value;
   final String label;
@@ -160,10 +166,14 @@ class _HistoryStat extends StatelessWidget {
       children: [
         Icon(icon, color: const Color(0xFFFF6B9D), size: 20),
         const SizedBox(height: 4),
-        Text(value,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-        Text(label,
-            style: const TextStyle(color: Colors.grey, fontSize: 12)),
+        Text(
+          value,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+        ),
+        Text(
+          label,
+          style: const TextStyle(color: Colors.grey, fontSize: 12),
+        ),
       ],
     );
   }

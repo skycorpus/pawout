@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../providers/auth_provider.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -15,7 +16,6 @@ class _SignupScreenState extends State<SignupScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _agreeToTerms = false;
@@ -33,7 +33,7 @@ class _SignupScreenState extends State<SignupScreen> {
     if (!_agreeToTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('이용약관에 동의해주세요'),
+          content: Text('이용약관에 동의해주세요.'),
           backgroundColor: Colors.red,
         ),
       );
@@ -44,8 +44,7 @@ class _SignupScreenState extends State<SignupScreen> {
       return;
     }
 
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-
+    final authProvider = context.read<AuthProvider>();
     final success = await authProvider.signup(
       email: _emailController.text.trim(),
       password: _passwordController.text,
@@ -55,18 +54,17 @@ class _SignupScreenState extends State<SignupScreen> {
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('회원가입이 완료되었습니다!'),
+          content: Text('회원가입이 완료되었습니다.'),
           backgroundColor: Colors.green,
         ),
       );
-      // 회원가입 성공 → 홈으로
       Navigator.of(context).pushReplacementNamed('/home');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
+    final authProvider = context.watch<AuthProvider>();
 
     return Scaffold(
       backgroundColor: const Color(0xFFFFF8F0),
@@ -80,7 +78,7 @@ class _SignupScreenState extends State<SignupScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.all(24),
           child: Form(
             key: _formKey,
             child: Column(
@@ -96,15 +94,10 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'PawOut과 함께 산책을 시작해보세요',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
+                  'PawOut과 함께 산책을 시작해보세요.',
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                 ),
                 const SizedBox(height: 32),
-
-                // 이름
                 TextFormField(
                   controller: _nameController,
                   decoration: InputDecoration(
@@ -119,17 +112,15 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return '이름을 입력해주세요';
+                      return '이름을 입력해주세요.';
                     }
                     if (value.length < 2) {
-                      return '이름은 2자 이상이어야 합니다';
+                      return '이름은 2자 이상이어야 합니다.';
                     }
                     return null;
                   },
                 ),
                 const SizedBox(height: 16),
-
-                // 이메일
                 TextFormField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
@@ -145,17 +136,15 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return '이메일을 입력해주세요';
+                      return '이메일을 입력해주세요.';
                     }
                     if (!value.contains('@') || !value.contains('.')) {
-                      return '올바른 이메일 형식이 아닙니다';
+                      return '올바른 이메일 형식을 입력해주세요.';
                     }
                     return null;
                   },
                 ),
                 const SizedBox(height: 16),
-
-                // 비밀번호
                 TextFormField(
                   controller: _passwordController,
                   obscureText: _obscurePassword,
@@ -183,23 +172,21 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return '비밀번호를 입력해주세요';
+                      return '비밀번호를 입력해주세요.';
                     }
                     if (value.length < 6) {
-                      return '비밀번호는 6자 이상이어야 합니다';
+                      return '비밀번호는 6자 이상이어야 합니다.';
                     }
                     return null;
                   },
                 ),
                 const SizedBox(height: 16),
-
-                // 비밀번호 확인
                 TextFormField(
                   controller: _confirmPasswordController,
                   obscureText: _obscureConfirmPassword,
                   decoration: InputDecoration(
                     labelText: '비밀번호 확인',
-                    hintText: '비밀번호를 다시 입력해주세요',
+                    hintText: '비밀번호를 다시 입력해주세요.',
                     prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
                       icon: Icon(
@@ -221,17 +208,15 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return '비밀번호 확인을 입력해주세요';
+                      return '비밀번호 확인을 입력해주세요.';
                     }
                     if (value != _passwordController.text) {
-                      return '비밀번호가 일치하지 않습니다';
+                      return '비밀번호가 일치하지 않습니다.';
                     }
                     return null;
                   },
                 ),
                 const SizedBox(height: 24),
-
-                // 약관 동의
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -263,7 +248,7 @@ class _SignupScreenState extends State<SignupScreen> {
                             });
                           },
                           child: const Text(
-                            '(필수) 이용약관 및 개인정보처리방침에 동의합니다',
+                            '(필수) 이용약관 및 개인정보처리방침에 동의합니다.',
                             style: TextStyle(fontSize: 14),
                           ),
                         ),
@@ -272,8 +257,6 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-
-                // 회원가입 버튼
                 ElevatedButton(
                   onPressed: authProvider.isLoading ? null : _handleSignup,
                   style: ElevatedButton.styleFrom(
@@ -283,7 +266,6 @@ class _SignupScreenState extends State<SignupScreen> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    elevation: 2,
                   ),
                   child: authProvider.isLoading
                       ? const SizedBox(
@@ -291,8 +273,9 @@ class _SignupScreenState extends State<SignupScreen> {
                           width: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(Colors.white),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
                           ),
                         )
                       : const Text(
@@ -304,17 +287,12 @@ class _SignupScreenState extends State<SignupScreen> {
                         ),
                 ),
                 const SizedBox(height: 16),
-
-                // 로그인으로 이동
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
                       '이미 계정이 있으신가요? ',
-                      style: TextStyle(
-                        color: Colors.grey[600],
-                        fontSize: 14,
-                      ),
+                      style: TextStyle(color: Colors.grey[600], fontSize: 14),
                     ),
                     GestureDetector(
                       onTap: () {
@@ -332,8 +310,6 @@ class _SignupScreenState extends State<SignupScreen> {
                     ),
                   ],
                 ),
-
-                // 에러 메시지
                 if (authProvider.errorMessage != null) ...[
                   const SizedBox(height: 16),
                   Container(

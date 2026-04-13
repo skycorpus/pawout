@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'core/config/supabase_config.dart';
 import 'core/constants/routes.dart';
 import 'features/auth/providers/auth_provider.dart';
 import 'features/dog_profile/providers/dog_provider.dart';
@@ -13,11 +14,7 @@ import 'features/common_code/providers/common_code_provider.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Supabase.initialize(
-    url: 'https://cvxlfjuuzyyzmduynwsp.supabase.co',
-    anonKey:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2eGxmanV1enl5em1kdXlud3NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMzk5NjksImV4cCI6MjA5MTYxNTk2OX0.0ERV3_Z26JGvNwC9FtXI5aFSl55vHthOwyzcl-yeDjs',
-  );
+  await SupabaseConfig.initialize();
 
   runApp(const MyApp());
 }

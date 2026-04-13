@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/ranking_provider.dart';
-import '../models/ranking_model.dart';
+
 import '../../dog_profile/providers/dog_provider.dart';
-import '../../likes/providers/likes_provider.dart';
 import '../../follows/providers/follows_provider.dart';
+import '../../likes/providers/likes_provider.dart';
+import '../models/ranking_model.dart';
+import '../providers/ranking_provider.dart';
 
 class RankingScreen extends StatefulWidget {
   const RankingScreen({super.key});
@@ -45,10 +46,14 @@ class _RankingScreenState extends State<RankingScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('오늘의 랭킹',
-                style: TextStyle(fontWeight: FontWeight.bold)),
-            Text(_today(),
-                style: const TextStyle(fontSize: 12, color: Colors.grey)),
+            const Text(
+              '오늘의 랭킹',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            Text(
+              _today(),
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
+            ),
           ],
         ),
         backgroundColor: Colors.transparent,
@@ -69,14 +74,17 @@ class _RankingScreenState extends State<RankingScreen> {
                 children: [
                   const Icon(Icons.error_outline, size: 48, color: Colors.red),
                   const SizedBox(height: 12),
-                  Text(rankingProvider.errorMessage!,
-                      style: const TextStyle(color: Colors.red)),
+                  Text(
+                    rankingProvider.errorMessage!,
+                    style: const TextStyle(color: Colors.red),
+                  ),
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () => rankingProvider.fetchDailyRankings(),
                     style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFFF6B9D),
-                        foregroundColor: Colors.white),
+                      backgroundColor: const Color(0xFFFF6B9D),
+                      foregroundColor: Colors.white,
+                    ),
                     child: const Text('다시 시도'),
                   ),
                 ],
@@ -91,12 +99,15 @@ class _RankingScreenState extends State<RankingScreen> {
                 children: [
                   Icon(Icons.emoji_events, size: 80, color: Color(0xFFFF6B9D)),
                   SizedBox(height: 16),
-                  Text('아직 오늘의 랭킹이 없어요',
-                      style: TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold)),
+                  Text(
+                    '아직 오늘의 랭킹이 없습니다.',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
                   SizedBox(height: 8),
-                  Text('산책을 시작하면 랭킹에 등록돼요!',
-                      style: TextStyle(color: Colors.grey)),
+                  Text(
+                    '산책을 시작하면 랭킹에 등록돼요!',
+                    style: TextStyle(color: Colors.grey),
+                  ),
                 ],
               ),
             );
@@ -108,8 +119,7 @@ class _RankingScreenState extends State<RankingScreen> {
             color: const Color(0xFFFF6B9D),
             onRefresh: () async {
               await rankingProvider.fetchDailyRankings();
-              final dogIds =
-                  rankingProvider.rankings.map((e) => e.dogId).toList();
+              final dogIds = rankingProvider.rankings.map((e) => e.dogId).toList();
               context.read<LikesProvider>().fetchMyLikes();
               context.read<LikesProvider>().fetchLikeCounts(dogIds);
               context.read<FollowsProvider>().fetchMyFollows();
@@ -165,22 +175,29 @@ class _RankingCard extends StatelessWidget {
         height: 36,
         decoration: BoxDecoration(color: _rankColor, shape: BoxShape.circle),
         child: Center(
-          child: Text('$rank',
-              style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16)),
+          child: Text(
+            '$rank',
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
         ),
       );
     }
+
     return SizedBox(
       width: 36,
-      child: Text('$rank',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-              color: Colors.grey.shade600,
-              fontWeight: FontWeight.bold,
-              fontSize: 16)),
+      child: Text(
+        '$rank',
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          color: Colors.grey.shade600,
+          fontWeight: FontWeight.bold,
+          fontSize: 16,
+        ),
+      ),
     );
   }
 
@@ -212,8 +229,7 @@ class _RankingCard extends StatelessWidget {
           const SizedBox(width: 12),
           CircleAvatar(
             radius: 24,
-            backgroundColor:
-                const Color(0xFFFF6B9D).withValues(alpha: 0.1),
+            backgroundColor: const Color(0xFFFF6B9D).withValues(alpha: 0.1),
             backgroundImage: entry.dogImageUrl != null
                 ? NetworkImage(entry.dogImageUrl!)
                 : null,
@@ -228,32 +244,42 @@ class _RankingCard extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Text(entry.dogName,
-                        style: const TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 15)),
+                    Text(
+                      entry.dogName,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                    ),
                     if (isMyDog) ...[
                       const SizedBox(width: 6),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 2),
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0xFFFF6B9D),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const Text('나',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold)),
+                        child: const Text(
+                          '내 강아지',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ],
                   ],
                 ),
                 Row(
                   children: [
-                    Text(entry.ownerName,
-                        style: TextStyle(
-                            color: Colors.grey[600], fontSize: 12)),
+                    Text(
+                      entry.ownerName,
+                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                    ),
                     if (!isMyDog && entry.ownerId != null) ...[
                       const SizedBox(width: 6),
                       Consumer<FollowsProvider>(
@@ -265,7 +291,9 @@ class _RankingCard extends StatelessWidget {
                                 followsProvider.toggleFollow(entry.ownerId!),
                             child: Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 2),
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
                               decoration: BoxDecoration(
                                 color: following
                                     ? Colors.grey.shade200
@@ -292,26 +320,24 @@ class _RankingCard extends StatelessWidget {
               ],
             ),
           ),
-          // 걸음수/거리 + 좋아요
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text('${entry.totalSteps}걸음',
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 14)),
-              Text('${entry.totalDistanceKm.toStringAsFixed(2)}km',
-                  style:
-                      TextStyle(color: Colors.grey[600], fontSize: 12)),
+              Text(
+                '${entry.totalSteps}걸음',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
+              Text(
+                '${entry.totalDistanceKm.toStringAsFixed(2)}km',
+                style: TextStyle(color: Colors.grey[600], fontSize: 12),
+              ),
               const SizedBox(height: 4),
-              // 좋아요 버튼
               Consumer<LikesProvider>(
                 builder: (context, likesProvider, _) {
                   final liked = likesProvider.isLiked(entry.dogId);
                   final count = likesProvider.getLikeCount(entry.dogId);
                   return GestureDetector(
-                    onTap: isMyDog
-                        ? null
-                        : () => likesProvider.toggleLike(entry.dogId),
+                    onTap: isMyDog ? null : () => likesProvider.toggleLike(entry.dogId),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -319,18 +345,17 @@ class _RankingCard extends StatelessWidget {
                           liked ? Icons.favorite : Icons.favorite_border,
                           color: isMyDog
                               ? Colors.grey.shade300
-                              : (liked
-                                  ? const Color(0xFFFF6B9D)
-                                  : Colors.grey),
+                              : (liked ? const Color(0xFFFF6B9D) : Colors.grey),
                           size: 18,
                         ),
                         const SizedBox(width: 2),
-                        Text('$count',
-                            style: TextStyle(
-                                fontSize: 12,
-                                color: liked
-                                    ? const Color(0xFFFF6B9D)
-                                    : Colors.grey)),
+                        Text(
+                          '$count',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: liked ? const Color(0xFFFF6B9D) : Colors.grey,
+                          ),
+                        ),
                       ],
                     ),
                   );

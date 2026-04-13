@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../dog_profile/providers/dog_provider.dart';
-import '../../walk/screens/walk_start_screen.dart';
-import '../../ranking/screens/ranking_screen.dart';
+
 import '../../../core/constants/routes.dart';
 import '../../auth/providers/auth_provider.dart';
-import '../../follows/providers/follows_provider.dart';
 import '../../common_code/providers/common_code_provider.dart';
+import '../../dog_profile/providers/dog_provider.dart';
+import '../../follows/providers/follows_provider.dart';
+import '../../ranking/screens/ranking_screen.dart';
+import '../../walk/screens/walk_start_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -29,10 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screens,
-      ),
+      body: IndexedStack(index: _currentIndex, children: _screens),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
@@ -43,8 +40,14 @@ class _HomeScreenState extends State<HomeScreen> {
         elevation: 8,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: '홈'),
-          BottomNavigationBarItem(icon: Icon(Icons.directions_walk), label: '산책'),
-          BottomNavigationBarItem(icon: Icon(Icons.emoji_events), label: '랭킹'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.directions_walk),
+            label: '산책',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.emoji_events),
+            label: '랭킹',
+          ),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: '프로필'),
         ],
       ),
@@ -52,7 +55,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// 홈 탭
 class _HomeTab extends StatefulWidget {
   const _HomeTab();
 
@@ -75,8 +77,11 @@ class _HomeTabState extends State<_HomeTab> {
       backgroundColor: const Color(0xFFFFF8F0),
       appBar: AppBar(
         title: const Text(
-          'PawOut 🐾',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFFF6B9D)),
+          'PawOut 홈',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Color(0xFFFF6B9D),
+          ),
         ),
         backgroundColor: Colors.white,
         elevation: 0,
@@ -101,19 +106,16 @@ class _HomeTabState extends State<_HomeTab> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 인사말
                 const Text(
-                  '안녕하세요! 👋',
+                  '안녕하세요',
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 4),
                 const Text(
-                  '오늘도 강아지와 즐거운 산책 하세요',
+                  '오늘도 강아지와 즐거운 산책을 시작해보세요.',
                   style: TextStyle(color: Colors.grey),
                 ),
                 const SizedBox(height: 28),
-
-                // 산책 시작 배너
                 GestureDetector(
                   onTap: () => Navigator.pushNamed(context, AppRoutes.walkStart),
                   child: Container(
@@ -150,40 +152,42 @@ class _HomeTabState extends State<_HomeTab> {
                               ),
                               SizedBox(height: 4),
                               Text(
-                                '강아지와 함께 건강한 하루를!',
+                                '강아지와 함께 건강한 하루를 만들어보세요.',
                                 style: TextStyle(
-                                    color: Colors.white70, fontSize: 13),
+                                  color: Colors.white70,
+                                  fontSize: 13,
+                                ),
                               ),
                             ],
                           ),
                         ),
-                        Icon(Icons.directions_walk,
-                            color: Colors.white, size: 48),
+                        Icon(Icons.directions_walk, color: Colors.white, size: 48),
                       ],
                     ),
                   ),
                 ),
                 const SizedBox(height: 28),
-
-                // 내 강아지
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
                       '내 강아지',
                       style: TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold),
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     TextButton(
                       onPressed: () =>
                           Navigator.pushNamed(context, AppRoutes.dogList),
-                      child: const Text('전체보기',
-                          style: TextStyle(color: Color(0xFFFF6B9D))),
+                      child: const Text(
+                        '전체보기',
+                        style: TextStyle(color: Color(0xFFFF6B9D)),
+                      ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 12),
-
                 if (dogProvider.dogs.isEmpty)
                   GestureDetector(
                     onTap: () =>
@@ -195,18 +199,25 @@ class _HomeTabState extends State<_HomeTab> {
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                            color: const Color(0xFFFF6B9D), width: 1.5,
-                            style: BorderStyle.solid),
+                          color: const Color(0xFFFF6B9D),
+                          width: 1.5,
+                        ),
                       ),
                       child: const Column(
                         children: [
-                          Icon(Icons.add_circle_outline,
-                              size: 40, color: Color(0xFFFF6B9D)),
+                          Icon(
+                            Icons.add_circle_outline,
+                            size: 40,
+                            color: Color(0xFFFF6B9D),
+                          ),
                           SizedBox(height: 8),
-                          Text('강아지를 등록해보세요!',
-                              style: TextStyle(
-                                  color: Color(0xFFFF6B9D),
-                                  fontWeight: FontWeight.bold)),
+                          Text(
+                            '강아지를 등록해보세요!',
+                            style: TextStyle(
+                              color: Color(0xFFFF6B9D),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -244,22 +255,28 @@ class _HomeTabState extends State<_HomeTab> {
                                     ? NetworkImage(dog.profileImageUrl!)
                                     : null,
                                 child: dog.profileImageUrl == null
-                                    ? const Icon(Icons.pets,
-                                        color: Color(0xFFFF6B9D), size: 26)
+                                    ? const Icon(
+                                        Icons.pets,
+                                        color: Color(0xFFFF6B9D),
+                                        size: 26,
+                                      )
                                     : null,
                               ),
                               const SizedBox(height: 8),
                               Text(
                                 dog.name,
                                 style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 13),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
                                 overflow: TextOverflow.ellipsis,
                               ),
                               Text(
                                 '${dog.age}살',
                                 style: const TextStyle(
-                                    color: Colors.grey, fontSize: 11),
+                                  color: Colors.grey,
+                                  fontSize: 11,
+                                ),
                               ),
                             ],
                           ),
@@ -267,10 +284,7 @@ class _HomeTabState extends State<_HomeTab> {
                       },
                     ),
                   ),
-
                 const SizedBox(height: 28),
-
-                // 산책 기록 바로가기
                 GestureDetector(
                   onTap: () =>
                       Navigator.pushNamed(context, AppRoutes.walkHistory),
@@ -295,18 +309,24 @@ class _HomeTabState extends State<_HomeTab> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('산책 기록',
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 15)),
-                              Text('지난 산책 기록을 확인해보세요',
-                                  style: TextStyle(
-                                      color: Colors.grey, fontSize: 12)),
+                              Text(
+                                '산책 기록',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
+                              ),
+                              Text(
+                                '지금까지의 산책 기록을 확인해보세요.',
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 12,
+                                ),
+                              ),
                             ],
                           ),
                         ),
-                        Icon(Icons.arrow_forward_ios,
-                            color: Colors.grey, size: 16),
+                        Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 16),
                       ],
                     ),
                   ),
@@ -320,7 +340,6 @@ class _HomeTabState extends State<_HomeTab> {
   }
 }
 
-// 프로필 탭
 class _ProfileTab extends StatefulWidget {
   const _ProfileTab();
 
@@ -341,15 +360,17 @@ class _ProfileTabState extends State<_ProfileTab> {
 
   @override
   Widget build(BuildContext context) {
-    final user = Supabase.instance.client.auth.currentUser;
-    final userName = user?.userMetadata?['name'] as String? ?? '사용자';
-    final userEmail = user?.email ?? '';
+    final authProvider = context.watch<AuthProvider>();
+    final userName = authProvider.currentUserName;
+    final userEmail = authProvider.currentUserEmail;
 
     return Scaffold(
       backgroundColor: const Color(0xFFFFF8F0),
       appBar: AppBar(
-        title: const Text('프로필',
-            style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          '프로필',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -358,7 +379,6 @@ class _ProfileTabState extends State<_ProfileTab> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 유저 정보
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -384,13 +404,21 @@ class _ProfileTabState extends State<_ProfileTab> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(userName,
-                            style: const TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.bold)),
+                        Text(
+                          userName,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                         const SizedBox(height: 4),
-                        Text(userEmail,
-                            style: TextStyle(
-                                color: Colors.grey[600], fontSize: 13)),
+                        Text(
+                          userEmail,
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 13,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -398,13 +426,13 @@ class _ProfileTabState extends State<_ProfileTab> {
               ),
             ),
             const SizedBox(height: 16),
-
-            // 팔로워 / 팔로잉
             Consumer<FollowsProvider>(
               builder: (context, followsProvider, _) {
                 return Container(
                   padding: const EdgeInsets.symmetric(
-                      vertical: 16, horizontal: 20),
+                    vertical: 16,
+                    horizontal: 20,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(16),
@@ -424,7 +452,10 @@ class _ProfileTabState extends State<_ProfileTab> {
                         count: followsProvider.followersCount,
                       ),
                       Container(
-                          width: 1, height: 40, color: Colors.grey.shade200),
+                        width: 1,
+                        height: 40,
+                        color: Colors.grey.shade200,
+                      ),
                       _CountCard(
                         label: '팔로잉',
                         count: followsProvider.followingCount,
@@ -435,19 +466,19 @@ class _ProfileTabState extends State<_ProfileTab> {
               },
             ),
             const SizedBox(height: 24),
-
-            // 내 강아지
-            const Text('내 강아지',
-                style:
-                    TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const Text(
+              '내 강아지',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 12),
             Consumer2<DogProvider, CommonCodeProvider>(
               builder: (context, dogProvider, codeProvider, _) {
                 if (dogProvider.isLoading) {
                   return const Center(
-                      child: CircularProgressIndicator(
-                          color: Color(0xFFFF6B9D)));
+                    child: CircularProgressIndicator(color: Color(0xFFFF6B9D)),
+                  );
                 }
+
                 if (dogProvider.dogs.isEmpty) {
                   return Container(
                     padding: const EdgeInsets.all(20),
@@ -456,15 +487,20 @@ class _ProfileTabState extends State<_ProfileTab> {
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: const Center(
-                      child: Text('등록된 강아지가 없어요',
-                          style: TextStyle(color: Colors.grey)),
+                      child: Text(
+                        '등록된 강아지가 없습니다.',
+                        style: TextStyle(color: Colors.grey),
+                      ),
                     ),
                   );
                 }
+
                 return Column(
                   children: dogProvider.dogs.map((dog) {
                     final breedName =
                         codeProvider.getCodeName('BREED', dog.breed);
+                    final genderLabel = dog.gender == 'male' ? '수컷' : '암컷';
+
                     return Container(
                       margin: const EdgeInsets.only(bottom: 10),
                       padding: const EdgeInsets.all(14),
@@ -489,8 +525,11 @@ class _ProfileTabState extends State<_ProfileTab> {
                                 ? NetworkImage(dog.profileImageUrl!)
                                 : null,
                             child: dog.profileImageUrl == null
-                                ? const Icon(Icons.pets,
-                                    color: Color(0xFFFF6B9D), size: 24)
+                                ? const Icon(
+                                    Icons.pets,
+                                    color: Color(0xFFFF6B9D),
+                                    size: 24,
+                                  )
                                 : null,
                           ),
                           const SizedBox(width: 14),
@@ -500,36 +539,47 @@ class _ProfileTabState extends State<_ProfileTab> {
                               children: [
                                 Row(
                                   children: [
-                                    Text(dog.name,
-                                        style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 15)),
+                                    Text(
+                                      dog.name,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 15,
+                                      ),
+                                    ),
                                     if (dog.isNeutered) ...[
                                       const SizedBox(width: 6),
                                       Container(
                                         padding: const EdgeInsets.symmetric(
-                                            horizontal: 6, vertical: 2),
+                                          horizontal: 6,
+                                          vertical: 2,
+                                        ),
                                         decoration: BoxDecoration(
                                           color: Colors.teal.shade50,
                                           borderRadius:
                                               BorderRadius.circular(6),
                                           border: Border.all(
-                                              color: Colors.teal.shade200),
+                                            color: Colors.teal.shade200,
+                                          ),
                                         ),
-                                        child: Text('중성화',
-                                            style: TextStyle(
-                                                fontSize: 10,
-                                                color: Colors.teal.shade700,
-                                                fontWeight: FontWeight.bold)),
+                                        child: Text(
+                                          '중성화',
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            color: Colors.teal.shade700,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
                                       ),
                                     ],
                                   ],
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  '$breedName · ${dog.age}살 · ${dog.gender == 'male' ? '남아' : '여아'} · ${dog.weight}kg',
+                                  '$breedName · ${dog.age}살 · $genderLabel · ${dog.weight}kg',
                                   style: TextStyle(
-                                      color: Colors.grey[600], fontSize: 12),
+                                    color: Colors.grey[600],
+                                    fontSize: 12,
+                                  ),
                                 ),
                               ],
                             ),
@@ -542,16 +592,13 @@ class _ProfileTabState extends State<_ProfileTab> {
               },
             ),
             const SizedBox(height: 24),
-
-            // 로그아웃
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
                 onPressed: () async {
                   await context.read<AuthProvider>().logout();
                   if (context.mounted) {
-                    Navigator.of(context)
-                        .pushReplacementNamed(AppRoutes.login);
+                    Navigator.of(context).pushReplacementNamed(AppRoutes.login);
                   }
                 },
                 icon: const Icon(Icons.logout),
@@ -572,6 +619,7 @@ class _ProfileTabState extends State<_ProfileTab> {
 
 class _CountCard extends StatelessWidget {
   const _CountCard({required this.label, required this.count});
+
   final String label;
   final int count;
 
@@ -581,11 +629,12 @@ class _CountCard extends StatelessWidget {
       children: [
         Text(
           '$count',
-          style: const TextStyle(
-              fontSize: 24, fontWeight: FontWeight.bold),
+          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
-        Text(label,
-            style: const TextStyle(color: Colors.grey, fontSize: 13)),
+        Text(
+          label,
+          style: const TextStyle(color: Colors.grey, fontSize: 13),
+        ),
       ],
     );
   }
