@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:provider/provider.dart';
 import '../providers/dog_provider.dart';
+import '../../common_code/providers/common_code_provider.dart';
 
 class DogRegisterScreen extends StatefulWidget {
   const DogRegisterScreen({super.key});
@@ -21,30 +22,20 @@ class _DogRegisterScreenState extends State<DogRegisterScreen> {
 
   DateTime? _selectedBirthDate;
   String _selectedGender = 'male';
+  String? _selectedBreedCode;
+  bool _isNeutered = false;
   File? _profileImage;
   bool _isUploading = false;
 
   final ImagePicker _picker = ImagePicker();
 
-  // 한국 인기 견종 리스트
-  final List<String> _popularBreeds = [
-    '골든 리트리버',
-    '시바견',
-    '말티즈',
-    '푸들',
-    '웰시코기',
-    '비글',
-    '포메라니안',
-    '치와와',
-    '진돗개',
-    '요크셔테리어',
-    '닥스훈트',
-    '불독',
-    '허스키',
-    '사모예드',
-    '믹스견',
-    '기타',
-  ];
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<CommonCodeProvider>().fetchGroup('BREED');
+    });
+  }
 
   @override
   void dispose() {
@@ -105,9 +96,10 @@ class _DogRegisterScreenState extends State<DogRegisterScreen> {
     }
   }
 
-  // 견종 선택 다이얼로그
+  // 견종 선택 다이얼로그 (공통코드)
   Future<void> _selectBreed() async {
-    final String? selected = await showDialog<String>(
+    final breeds = context.read<CommonCodeProvider>().getGroup('BREED');
+    final selected = await showDialog<String>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
@@ -116,13 +108,11 @@ class _DogRegisterScreenState extends State<DogRegisterScreen> {
             width: double.maxFinite,
             child: ListView.builder(
               shrinkWrap: true,
-              itemCount: _popularBreeds.length,
+              itemCount: breeds.length,
               itemBuilder: (context, index) {
                 return ListTile(
-                  title: Text(_popularBreeds[index]),
-                  onTap: () {
-                    Navigator.pop(context, _popularBreeds[index]);
-                  },
+                  title: Text(breeds[index].codeName),
+                  onTap: () => Navigator.pop(context, breeds[index].code),
                 );
               },
             ),
@@ -132,12 +122,13 @@ class _DogRegisterScreenState extends State<DogRegisterScreen> {
     );
 
     if (selected != null) {
-      if (selected == '기타') {
-        // 기타 선택 시 직접 입력
-        _breedController.clear();
-      } else {
-        _breedController.text = selected;
-      }
+      final codeName = context
+          .read<CommonCodeProvider>()
+          .getCodeName('BREED', selected);
+      setState(() {
+        _selectedBreedCode = selected;
+        _breedController.text = codeName;
+      });
     }
   }
 
@@ -150,6 +141,13 @@ class _DogRegisterScreenState extends State<DogRegisterScreen> {
     if (_selectedBirthDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('생년월일을 선택해주세요')),
+      );
+      return;
+    }
+
+    if (_selectedBreedCode == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('견종을 선택해주세요')),
       );
       return;
     }
@@ -175,10 +173,11 @@ class _DogRegisterScreenState extends State<DogRegisterScreen> {
 
     final success = await dogProvider.addDog(
       name: _nameController.text.trim(),
-      breed: _breedController.text.trim(),
+      breed: _selectedBreedCode!,
       birthDate: _selectedBirthDate!,
       gender: _selectedGender,
       weight: double.parse(_weightController.text),
+      isNeutered: _isNeutered,
       chipNumber: _chipNumberController.text.trim().isEmpty
           ? null
           : _chipNumberController.text.trim(),
@@ -388,6 +387,30 @@ class _DogRegisterScreenState extends State<DogRegisterScreen> {
                           ),
                         ),
                       ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // 중성화 여부
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade300),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('중성화 여부',
+                        style: TextStyle(fontSize: 15)),
+                    Switch(
+                      value: _isNeutered,
+                      activeColor: const Color(0xFFFF6B9D),
+                      onChanged: (value) =>
+                          setState(() => _isNeutered = value),
                     ),
                   ],
                 ),

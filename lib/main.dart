@@ -8,6 +8,7 @@ import 'features/walk/providers/walk_provider.dart';
 import 'features/ranking/providers/ranking_provider.dart';
 import 'features/likes/providers/likes_provider.dart';
 import 'features/follows/providers/follows_provider.dart';
+import 'features/common_code/providers/common_code_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,6 +35,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => RankingProvider()),
         ChangeNotifierProvider(create: (_) => LikesProvider()),
         ChangeNotifierProvider(create: (_) => FollowsProvider()),
+        ChangeNotifierProvider(create: (_) => CommonCodeProvider()),
       ],
       child: MaterialApp(
         title: 'PawOut',

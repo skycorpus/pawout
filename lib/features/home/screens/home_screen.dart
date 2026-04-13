@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../dog_profile/providers/dog_provider.dart';
 import '../../walk/screens/walk_start_screen.dart';
 import '../../ranking/screens/ranking_screen.dart';
 import '../../../core/constants/routes.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../follows/providers/follows_provider.dart';
+import '../../common_code/providers/common_code_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -332,11 +334,17 @@ class _ProfileTabState extends State<_ProfileTab> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<FollowsProvider>().fetchMyCounts();
+      context.read<DogProvider>().fetchDogs();
+      context.read<CommonCodeProvider>().fetchGroup('BREED');
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final user = Supabase.instance.client.auth.currentUser;
+    final userName = user?.userMetadata?['name'] as String? ?? '사용자';
+    final userEmail = user?.email ?? '';
+
     return Scaffold(
       backgroundColor: const Color(0xFFFFF8F0),
       appBar: AppBar(
@@ -345,57 +353,218 @@ class _ProfileTabState extends State<_ProfileTab> {
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
-      body: Consumer<FollowsProvider>(
-        builder: (context, followsProvider, _) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const CircleAvatar(
-                  radius: 48,
-                  backgroundColor: Color(0xFFFF6B9D),
-                  child: Icon(Icons.person, size: 48, color: Colors.white),
-                ),
-                const SizedBox(height: 20),
-
-                // 팔로워 / 팔로잉 수
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _CountCard(
-                      label: '팔로워',
-                      count: followsProvider.followersCount,
-                    ),
-                    const SizedBox(width: 32),
-                    _CountCard(
-                      label: '팔로잉',
-                      count: followsProvider.followingCount,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 32),
-
-                ElevatedButton.icon(
-                  onPressed: () async {
-                    await context.read<AuthProvider>().logout();
-                    if (context.mounted) {
-                      Navigator.of(context)
-                          .pushReplacementNamed(AppRoutes.login);
-                    }
-                  },
-                  icon: const Icon(Icons.logout),
-                  label: const Text('로그아웃'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFF6B9D),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 32, vertical: 12),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 유저 정보
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
                   ),
-                ),
-              ],
+                ],
+              ),
+              child: Row(
+                children: [
+                  const CircleAvatar(
+                    radius: 36,
+                    backgroundColor: Color(0xFFFF6B9D),
+                    child: Icon(Icons.person, size: 36, color: Colors.white),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(userName,
+                            style: const TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 4),
+                        Text(userEmail,
+                            style: TextStyle(
+                                color: Colors.grey[600], fontSize: 13)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-          );
-        },
+            const SizedBox(height: 16),
+
+            // 팔로워 / 팔로잉
+            Consumer<FollowsProvider>(
+              builder: (context, followsProvider, _) {
+                return Container(
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 16, horizontal: 20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _CountCard(
+                        label: '팔로워',
+                        count: followsProvider.followersCount,
+                      ),
+                      Container(
+                          width: 1, height: 40, color: Colors.grey.shade200),
+                      _CountCard(
+                        label: '팔로잉',
+                        count: followsProvider.followingCount,
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 24),
+
+            // 내 강아지
+            const Text('내 강아지',
+                style:
+                    TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            Consumer2<DogProvider, CommonCodeProvider>(
+              builder: (context, dogProvider, codeProvider, _) {
+                if (dogProvider.isLoading) {
+                  return const Center(
+                      child: CircularProgressIndicator(
+                          color: Color(0xFFFF6B9D)));
+                }
+                if (dogProvider.dogs.isEmpty) {
+                  return Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const Center(
+                      child: Text('등록된 강아지가 없어요',
+                          style: TextStyle(color: Colors.grey)),
+                    ),
+                  );
+                }
+                return Column(
+                  children: dogProvider.dogs.map((dog) {
+                    final breedName =
+                        codeProvider.getCodeName('BREED', dog.breed);
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 10),
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 28,
+                            backgroundColor: const Color(0xFFFF6B9D)
+                                .withValues(alpha: 0.1),
+                            backgroundImage: dog.profileImageUrl != null
+                                ? NetworkImage(dog.profileImageUrl!)
+                                : null,
+                            child: dog.profileImageUrl == null
+                                ? const Icon(Icons.pets,
+                                    color: Color(0xFFFF6B9D), size: 24)
+                                : null,
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(dog.name,
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 15)),
+                                    if (dog.isNeutered) ...[
+                                      const SizedBox(width: 6),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 6, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: Colors.teal.shade50,
+                                          borderRadius:
+                                              BorderRadius.circular(6),
+                                          border: Border.all(
+                                              color: Colors.teal.shade200),
+                                        ),
+                                        child: Text('중성화',
+                                            style: TextStyle(
+                                                fontSize: 10,
+                                                color: Colors.teal.shade700,
+                                                fontWeight: FontWeight.bold)),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  '$breedName · ${dog.age}살 · ${dog.gender == 'male' ? '남아' : '여아'} · ${dog.weight}kg',
+                                  style: TextStyle(
+                                      color: Colors.grey[600], fontSize: 12),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                );
+              },
+            ),
+            const SizedBox(height: 24),
+
+            // 로그아웃
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () async {
+                  await context.read<AuthProvider>().logout();
+                  if (context.mounted) {
+                    Navigator.of(context)
+                        .pushReplacementNamed(AppRoutes.login);
+                  }
+                },
+                icon: const Icon(Icons.logout),
+                label: const Text('로그아웃'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFF6B9D),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

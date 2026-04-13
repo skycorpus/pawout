@@ -1,10 +1,11 @@
 class Dog {
   final int? id;
   final String name;
-  final String breed;
+  final String breed; // common_codes.code (e.g. 'POODLE')
   final DateTime birthDate;
   final String gender; // 'male' or 'female'
   final double weight; // kg
+  final bool isNeutered;
   final String? chipNumber; // 동물등록번호 (15자리)
   final String? profileImageUrl;
   final String userId; // Supabase Auth UUID (String)
@@ -17,6 +18,7 @@ class Dog {
     required this.birthDate,
     required this.gender,
     required this.weight,
+    this.isNeutered = false,
     this.chipNumber,
     this.profileImageUrl,
     required this.userId,
@@ -43,6 +45,7 @@ class Dog {
       birthDate: DateTime.parse(json['birth_date'] as String),
       gender: json['gender'] as String,
       weight: (json['weight'] as num).toDouble(),
+      isNeutered: json['is_neutered'] as bool? ?? false,
       chipNumber: json['chip_number'] as String?,
       profileImageUrl: json['profile_image_url'] as String?,
       userId: json['user_id'] as String,
@@ -60,6 +63,7 @@ class Dog {
       'birth_date': birthDate.toIso8601String(),
       'gender': gender,
       'weight': weight,
+      'is_neutered': isNeutered,
       'chip_number': chipNumber,
       'profile_image_url': profileImageUrl,
       'user_id': userId,
@@ -74,6 +78,7 @@ class Dog {
     DateTime? birthDate,
     String? gender,
     double? weight,
+    bool? isNeutered,
     String? chipNumber,
     String? profileImageUrl,
     String? userId,
@@ -86,6 +91,7 @@ class Dog {
       birthDate: birthDate ?? this.birthDate,
       gender: gender ?? this.gender,
       weight: weight ?? this.weight,
+      isNeutered: isNeutered ?? this.isNeutered,
       chipNumber: chipNumber ?? this.chipNumber,
       profileImageUrl: profileImageUrl ?? this.profileImageUrl,
       userId: userId ?? this.userId,

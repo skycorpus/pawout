@@ -21,6 +21,7 @@ class DogProvider with ChangeNotifier {
     required DateTime birthDate,
     required String gender,
     required double weight,
+    bool isNeutered = false,
     String? chipNumber,
     String? profileImageUrl,
   }) async {
@@ -38,6 +39,7 @@ class DogProvider with ChangeNotifier {
         'birth_date': birthDate.toIso8601String(),
         'gender': gender,
         'weight': weight,
+        'is_neutered': isNeutered,
         'chip_number': chipNumber,
         'profile_image_url': profileImageUrl,
         'user_id': userId,

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/dog_provider.dart';
 import '../models/dog_model.dart';
 import 'dog_register_screen.dart';
+import '../../common_code/providers/common_code_provider.dart';
 
 class DogListScreen extends StatefulWidget {
   const DogListScreen({super.key});
@@ -132,14 +133,38 @@ class _DogListScreenState extends State<DogListScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(dog.name,
-                              style: const TextStyle(
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.bold)),
+                          Row(
+                            children: [
+                              Text(dog.name,
+                                  style: const TextStyle(
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.bold)),
+                              if (dog.isNeutered) ...[
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.teal.shade50,
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(
+                                        color: Colors.teal.shade200),
+                                  ),
+                                  child: Text('중성화',
+                                      style: TextStyle(
+                                          fontSize: 10,
+                                          color: Colors.teal.shade700,
+                                          fontWeight: FontWeight.bold)),
+                                ),
+                              ],
+                            ],
+                          ),
                           const SizedBox(height: 4),
-                          Text('${dog.breed} · ${dog.age}살 · ${dog.gender == 'male' ? '남아' : '여아'}',
-                              style: TextStyle(
-                                  color: Colors.grey[600], fontSize: 13)),
+                          Text(
+                            '${context.read<CommonCodeProvider>().getCodeName('BREED', dog.breed)} · ${dog.age}살 · ${dog.gender == 'male' ? '남아' : '여아'}',
+                            style: TextStyle(
+                                color: Colors.grey[600], fontSize: 13),
+                          ),
                           Text('${dog.weight}kg',
                               style: TextStyle(
                                   color: Colors.grey[500], fontSize: 12)),
