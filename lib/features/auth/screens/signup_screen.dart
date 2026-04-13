@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -29,7 +30,6 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   Future<void> _handleSignup() async {
-    // 약관 동의 체크
     if (!_agreeToTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -44,40 +44,29 @@ class _SignupScreenState extends State<SignupScreen> {
       return;
     }
 
-    // AuthProvider에서 회원가입 실행
-    // final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    // final success = await authProvider.signup(
-    //   _emailController.text.trim(),
-    //   _passwordController.text,
-    //   _nameController.text.trim(),
-    // );
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-    // if (success && mounted) {
-    //   // 회원가입 성공
-    //   ScaffoldMessenger.of(context).showSnackBar(
-    //     const SnackBar(
-    //       content: Text('회원가입이 완료되었습니다!'),
-    //       backgroundColor: Colors.green,
-    //     ),
-    //   );
-    //   Navigator.of(context).pushReplacementNamed('/home');
-    // }
+    final success = await authProvider.signup(
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+      name: _nameController.text.trim(),
+    );
 
-    // 임시: 성공 메시지 후 로그인 화면으로
-    if (mounted) {
+    if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('회원가입이 완료되었습니다!'),
           backgroundColor: Colors.green,
         ),
       );
-      Navigator.of(context).pop(); // 로그인 화면으로 돌아가기
+      // 회원가입 성공 → 홈으로
+      Navigator.of(context).pushReplacementNamed('/home');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // final authProvider = Provider.of<AuthProvider>(context);
+    final authProvider = Provider.of<AuthProvider>(context);
 
     return Scaffold(
       backgroundColor: const Color(0xFFFFF8F0),
@@ -97,7 +86,6 @@ class _SignupScreenState extends State<SignupScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // 헤더
                 const Text(
                   '회원가입',
                   style: TextStyle(
@@ -116,7 +104,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
                 const SizedBox(height: 32),
 
-                // 이름 입력
+                // 이름
                 TextFormField(
                   controller: _nameController,
                   decoration: InputDecoration(
@@ -141,7 +129,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // 이메일 입력
+                // 이메일
                 TextFormField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
@@ -167,13 +155,13 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // 비밀번호 입력
+                // 비밀번호
                 TextFormField(
                   controller: _passwordController,
                   obscureText: _obscurePassword,
                   decoration: InputDecoration(
                     labelText: '비밀번호',
-                    hintText: '8자 이상, 영문+숫자 조합',
+                    hintText: '6자 이상 입력',
                     prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
                       icon: Icon(
@@ -197,14 +185,8 @@ class _SignupScreenState extends State<SignupScreen> {
                     if (value == null || value.isEmpty) {
                       return '비밀번호를 입력해주세요';
                     }
-                    if (value.length < 8) {
-                      return '비밀번호는 8자 이상이어야 합니다';
-                    }
-                    // 영문+숫자 조합 체크
-                    bool hasLetter = value.contains(RegExp(r'[a-zA-Z]'));
-                    bool hasDigit = value.contains(RegExp(r'[0-9]'));
-                    if (!hasLetter || !hasDigit) {
-                      return '영문과 숫자를 모두 포함해야 합니다';
+                    if (value.length < 6) {
+                      return '비밀번호는 6자 이상이어야 합니다';
                     }
                     return null;
                   },
@@ -258,7 +240,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     border: Border.all(
                       color: _agreeToTerms
                           ? const Color(0xFFFF6B9D)
-                          : Colors.grey[300]!,
+                          : Colors.grey.shade300,
                       width: _agreeToTerms ? 2 : 1,
                     ),
                   ),
@@ -280,34 +262,9 @@ class _SignupScreenState extends State<SignupScreen> {
                               _agreeToTerms = !_agreeToTerms;
                             });
                           },
-                          child: RichText(
-                            text: TextSpan(
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: Color(0xFF2D3436),
-                              ),
-                              children: [
-                                const TextSpan(text: '(필수) '),
-                                TextSpan(
-                                  text: '이용약관',
-                                  style: TextStyle(
-                                    color: const Color(0xFFFF6B9D),
-                                    fontWeight: FontWeight.bold,
-                                    decoration: TextDecoration.underline,
-                                  ),
-                                ),
-                                const TextSpan(text: ' 및 '),
-                                TextSpan(
-                                  text: '개인정보처리방침',
-                                  style: TextStyle(
-                                    color: const Color(0xFFFF6B9D),
-                                    fontWeight: FontWeight.bold,
-                                    decoration: TextDecoration.underline,
-                                  ),
-                                ),
-                                const TextSpan(text: '에 동의합니다'),
-                              ],
-                            ),
+                          child: const Text(
+                            '(필수) 이용약관 및 개인정보처리방침에 동의합니다',
+                            style: TextStyle(fontSize: 14),
                           ),
                         ),
                       ),
@@ -318,7 +275,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
                 // 회원가입 버튼
                 ElevatedButton(
-                  onPressed: _handleSignup,
+                  onPressed: authProvider.isLoading ? null : _handleSignup,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFFF6B9D),
                     foregroundColor: Colors.white,
@@ -328,13 +285,23 @@ class _SignupScreenState extends State<SignupScreen> {
                     ),
                     elevation: 2,
                   ),
-                  child: const Text(
-                    '회원가입',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  child: authProvider.isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : const Text(
+                          '회원가입',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
                 const SizedBox(height: 16),
 
@@ -366,29 +333,29 @@ class _SignupScreenState extends State<SignupScreen> {
                   ],
                 ),
 
-                // 에러 메시지 표시
-                // if (authProvider.errorMessage != null) ...[
-                //   const SizedBox(height: 16),
-                //   Container(
-                //     padding: const EdgeInsets.all(12),
-                //     decoration: BoxDecoration(
-                //       color: Colors.red[50],
-                //       borderRadius: BorderRadius.circular(8),
-                //     ),
-                //     child: Row(
-                //       children: [
-                //         Icon(Icons.error_outline, color: Colors.red[700]),
-                //         const SizedBox(width: 8),
-                //         Expanded(
-                //           child: Text(
-                //             authProvider.errorMessage!,
-                //             style: TextStyle(color: Colors.red[700]),
-                //           ),
-                //         ),
-                //       ],
-                //     ),
-                //   ),
-                // ],
+                // 에러 메시지
+                if (authProvider.errorMessage != null) ...[
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.red[50],
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.error_outline, color: Colors.red[700]),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            authProvider.errorMessage!,
+                            style: TextStyle(color: Colors.red[700]),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

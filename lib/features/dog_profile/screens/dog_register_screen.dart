@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-// import 'package:provider/provider.dart';
-// import '../providers/dog_provider.dart';
+import 'package:provider/provider.dart';
+import '../providers/dog_provider.dart';
 
 class DogRegisterScreen extends StatefulWidget {
   const DogRegisterScreen({super.key});
@@ -22,6 +22,7 @@ class _DogRegisterScreenState extends State<DogRegisterScreen> {
   DateTime? _selectedBirthDate;
   String _selectedGender = 'male';
   File? _profileImage;
+  bool _isUploading = false;
 
   final ImagePicker _picker = ImagePicker();
 
@@ -153,26 +154,38 @@ class _DogRegisterScreenState extends State<DogRegisterScreen> {
       return;
     }
 
-    // TODO: Provider로 강아지 등록
-    // final dogProvider = Provider.of<DogProvider>(context, listen: false);
-    // final success = await dogProvider.addDog(
-    //   name: _nameController.text.trim(),
-    //   breed: _breedController.text.trim(),
-    //   birthDate: _selectedBirthDate!,
-    //   gender: _selectedGender,
-    //   weight: double.parse(_weightController.text),
-    //   chipNumber: _chipNumberController.text.trim().isEmpty
-    //       ? null
-    //       : _chipNumberController.text.trim(),
-    //   profileImageUrl: null, // TODO: 이미지 업로드 후 URL
-    // );
+    final dogProvider = Provider.of<DogProvider>(context, listen: false);
 
-    // if (success && mounted) {
-    //   Navigator.pop(context, true);
-    // }
+    // 이미지 업로드
+    String? imageUrl;
+    if (_profileImage != null) {
+      setState(() => _isUploading = true);
+      imageUrl = await dogProvider.uploadDogImage(_profileImage!);
+      setState(() => _isUploading = false);
+      if (imageUrl == null && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(dogProvider.errorMessage ?? '이미지 업로드에 실패했습니다'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+    }
 
-    // 임시: 성공 메시지
-    if (mounted) {
+    final success = await dogProvider.addDog(
+      name: _nameController.text.trim(),
+      breed: _breedController.text.trim(),
+      birthDate: _selectedBirthDate!,
+      gender: _selectedGender,
+      weight: double.parse(_weightController.text),
+      chipNumber: _chipNumberController.text.trim().isEmpty
+          ? null
+          : _chipNumberController.text.trim(),
+      profileImageUrl: imageUrl,
+    );
+
+    if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('강아지가 등록되었습니다!'),
@@ -180,6 +193,13 @@ class _DogRegisterScreenState extends State<DogRegisterScreen> {
         ),
       );
       Navigator.pop(context, true);
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(dogProvider.errorMessage ?? '등록에 실패했습니다'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -436,24 +456,39 @@ class _DogRegisterScreenState extends State<DogRegisterScreen> {
               const SizedBox(height: 32),
 
               // 등록 버튼
-              ElevatedButton(
-                onPressed: _handleRegister,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFF6B9D),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 2,
-                ),
-                child: const Text(
-                  '등록하기',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+              Consumer<DogProvider>(
+                builder: (context, dogProvider, _) {
+                  final isLoading = _isUploading || dogProvider.isLoading;
+                  return ElevatedButton(
+                    onPressed: isLoading ? null : _handleRegister,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFFF6B9D),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 2,
+                    ),
+                    child: isLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          )
+                        : const Text(
+                            '등록하기',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                  );
+                },
               ),
               const SizedBox(height: 16),
 

@@ -7,7 +7,7 @@ class Dog {
   final double weight; // kg
   final String? chipNumber; // 동물등록번호 (15자리)
   final String? profileImageUrl;
-  final int userId;
+  final String userId; // Supabase Auth UUID (String)
   final DateTime createdAt;
 
   Dog({
@@ -34,35 +34,35 @@ class Dog {
     return age;
   }
 
-  // JSON → Dog 객체 변환
+  // JSON → Dog 객체 변환 (Supabase snake_case 컬럼명 기준)
   factory Dog.fromJson(Map<String, dynamic> json) {
     return Dog(
       id: json['id'] as int?,
       name: json['name'] as String,
       breed: json['breed'] as String,
-      birthDate: DateTime.parse(json['birthDate'] as String),
+      birthDate: DateTime.parse(json['birth_date'] as String),
       gender: json['gender'] as String,
       weight: (json['weight'] as num).toDouble(),
-      chipNumber: json['chipNumber'] as String?,
-      profileImageUrl: json['profileImageUrl'] as String?,
-      userId: json['userId'] as int,
-      createdAt: DateTime.parse(json['createdAt'] as String),
+      chipNumber: json['chip_number'] as String?,
+      profileImageUrl: json['profile_image_url'] as String?,
+      userId: json['user_id'] as String,
+      createdAt: json['i_date'] != null
+          ? DateTime.parse(json['i_date'] as String)
+          : DateTime.now(),
     );
   }
 
-  // Dog 객체 → JSON 변환
+  // Dog 객체 → JSON 변환 (Supabase insert/update용)
   Map<String, dynamic> toJson() {
     return {
-      if (id != null) 'id': id,
       'name': name,
       'breed': breed,
-      'birthDate': birthDate.toIso8601String(),
+      'birth_date': birthDate.toIso8601String(),
       'gender': gender,
       'weight': weight,
-      'chipNumber': chipNumber,
-      'profileImageUrl': profileImageUrl,
-      'userId': userId,
-      'createdAt': createdAt.toIso8601String(),
+      'chip_number': chipNumber,
+      'profile_image_url': profileImageUrl,
+      'user_id': userId,
     };
   }
 
@@ -76,7 +76,7 @@ class Dog {
     double? weight,
     String? chipNumber,
     String? profileImageUrl,
-    int? userId,
+    String? userId,
     DateTime? createdAt,
   }) {
     return Dog(

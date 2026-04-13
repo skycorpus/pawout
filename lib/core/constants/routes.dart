@@ -11,7 +11,7 @@ import '../../features/walk/screens/walk_history_screen.dart';
 import '../../features/walk/screens/walk_start_screen.dart';
 
 class AppRoutes {
-  static const String home = '/';
+  static const String home = '/home';
   static const String login = '/login';
   static const String signup = '/signup';
   static const String dogList = '/dogs';

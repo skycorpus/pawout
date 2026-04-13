@@ -1,14 +1,18 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
-// import 'package:pawout/features/dog_profile/models/dog_model.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../models/dog_model.dart';
 
 class DogProvider with ChangeNotifier {
-  List<dynamic> _dogs = []; // Dog 타입으로 나중에 변경
+  List<Dog> _dogs = [];
   bool _isLoading = false;
   String? _errorMessage;
 
-  List<dynamic> get dogs => _dogs;
+  List<Dog> get dogs => List.unmodifiable(_dogs);
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+
+  final _supabase = Supabase.instance.client;
 
   // 강아지 추가
   Future<bool> addDog({
@@ -25,26 +29,21 @@ class DogProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      // TODO: 실제 API 호출로 교체
-      // final response = await apiService.createDog(...);
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) throw Exception('로그인이 필요합니다');
 
-      await Future.delayed(const Duration(seconds: 1));
-
-      // 임시 강아지 데이터 생성
-      final newDog = {
-        'id': _dogs.length + 1,
+      final response = await _supabase.from('dogs').insert({
         'name': name,
         'breed': breed,
-        'birthDate': birthDate.toIso8601String(),
+        'birth_date': birthDate.toIso8601String(),
         'gender': gender,
         'weight': weight,
-        'chipNumber': chipNumber,
-        'profileImageUrl': profileImageUrl,
-        'userId': 1, // 임시
-        'createdAt': DateTime.now().toIso8601String(),
-      };
+        'chip_number': chipNumber,
+        'profile_image_url': profileImageUrl,
+        'user_id': userId,
+      }).select().single();
 
-      _dogs.add(newDog);
+      _dogs.add(Dog.fromJson(response));
       _isLoading = false;
       notifyListeners();
       return true;
@@ -62,31 +61,15 @@ class DogProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      // TODO: 실제 API 호출
-      await Future.delayed(const Duration(seconds: 1));
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) throw Exception('로그인이 필요합니다');
 
-      // 임시 데이터
-      _dogs = [
-        {
-          'id': 1,
-          'name': '멍멍이',
-          'breed': '골든 리트리버',
-          'birthDate': '2020-03-15',
-          'gender': 'male',
-          'weight': 28.5,
-          'chipNumber': '410000012345678',
-        },
-        {
-          'id': 2,
-          'name': '복실이',
-          'breed': '시바견',
-          'birthDate': '2021-07-20',
-          'gender': 'female',
-          'weight': 9.2,
-          'chipNumber': null,
-        },
-      ];
+      final response = await _supabase
+          .from('dogs')
+          .select()
+          .eq('user_id', userId);
 
+      _dogs = (response as List).map((e) => Dog.fromJson(e)).toList();
       _isLoading = false;
       notifyListeners();
     } catch (e) {
@@ -102,13 +85,17 @@ class DogProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      await Future.delayed(const Duration(seconds: 1));
+      final response = await _supabase
+          .from('dogs')
+          .update(updates)
+          .eq('id', dogId)
+          .select()
+          .single();
 
-      final index = _dogs.indexWhere((dog) => dog['id'] == dogId);
+      final index = _dogs.indexWhere((dog) => dog.id == dogId);
       if (index != -1) {
-        _dogs[index] = {..._dogs[index], ...updates};
+        _dogs[index] = Dog.fromJson(response);
       }
-
       _isLoading = false;
       notifyListeners();
       return true;
@@ -123,14 +110,39 @@ class DogProvider with ChangeNotifier {
   // 강아지 삭제
   Future<bool> deleteDog(int dogId) async {
     try {
-      await Future.delayed(const Duration(seconds: 1));
-      _dogs.removeWhere((dog) => dog['id'] == dogId);
+      await _supabase.from('dogs').delete().eq('id', dogId);
+      _dogs.removeWhere((dog) => dog.id == dogId);
       notifyListeners();
       return true;
     } catch (e) {
       _errorMessage = e.toString();
       notifyListeners();
       return false;
+    }
+  }
+
+  // 강아지 프로필 이미지 업로드
+  Future<String?> uploadDogImage(File imageFile) async {
+    try {
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) throw Exception('로그인이 필요합니다');
+
+      final ext = imageFile.path.split('.').last.toLowerCase();
+      final fileName = '$userId/${DateTime.now().millisecondsSinceEpoch}.$ext';
+
+      await _supabase.storage.from('dog-images').upload(
+            fileName,
+            imageFile,
+            fileOptions: const FileOptions(upsert: true),
+          );
+
+      final url =
+          _supabase.storage.from('dog-images').getPublicUrl(fileName);
+      return url;
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+      return null;
     }
   }
 

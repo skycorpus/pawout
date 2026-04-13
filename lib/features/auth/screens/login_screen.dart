@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -26,19 +27,13 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    // AuthProvider에서 로그인 실행
-    // final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    // final success = await authProvider.login(
-    //   _emailController.text.trim(),
-    //   _passwordController.text,
-    // );
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final success = await authProvider.login(
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+    );
 
-    // if (success && mounted) {
-    //   Navigator.of(context).pushReplacementNamed('/home');
-    // }
-
-    // 임시: 바로 홈으로 이동
-    if (mounted) {
+    if (success && mounted) {
       Navigator.of(context).pushReplacementNamed('/home');
     }
   }
