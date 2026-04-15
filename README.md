@@ -109,7 +109,7 @@ Phase 4 (폴리싱) 🔲
 
 - Supabase URL / Anon Key / Naver Maps Client ID는 `.dart_defines.json`으로 분리 관리하며 git에 포함되지 않습니다. `.dart_defines.json.example`을 참고해 로컬 파일을 생성하세요.
 - 실행 시 반드시 `--dart-define-from-file=.dart_defines.json` 옵션을 사용해야 합니다. VS Code에서는 F5 실행 시 자동 적용됩니다.
-- README의 DB 설계는 목표 스키마 기준이며, 실제 화면 구현 상태와 100% 일치하지 않을 수 있습니다.
+- README의 DB 설계는 `supabase/migrations/001_schema.sql`, `002_rls.sql` 기준으로 정리합니다.
 - 프로젝트에는 기본 위젯 테스트만 포함되어 있어, 주요 Provider와 화면 흐름에 대한 테스트 보강이 필요합니다.
 
 ## 🚀 현재 구현 상태
@@ -191,6 +191,8 @@ Phase 4 (폴리싱) 🔲
 
 ## 📊 DB 설계
 
+현재 DB는 단일 강아지 산책 구조에서 확장되어, 멀티 강아지 산책과 가족 계정 공유를 함께 지원하는 형태입니다.
+
 ### profiles
 | 컬럼 | 타입 | 설명 |
 |------|------|------|
@@ -202,7 +204,7 @@ Phase 4 (폴리싱) 🔲
 | 컬럼 | 타입 | 설명 |
 |------|------|------|
 | id | int8 (PK) | 강아지 ID |
-| user_id | uuid (FK) | 소유자 (profiles.id) |
+| user_id | uuid (FK) | 기본 소유자 (`auth.users.id`) |
 | name | text | 강아지 이름 |
 | breed | text | 견종 코드 (common_codes.code) |
 | birth_date | date | 생년월일 (나이는 앱에서 계산) |
@@ -216,6 +218,10 @@ Phase 4 (폴리싱) 🔲
 | u_date | timestamptz | 수정일 |
 | u_user | text | 수정자 |
 
+제약/인덱스
+- `gender in ('male', 'female')`
+- `idx_dogs_user`
+
 ### common_codes
 | 컬럼 | 타입 | 설명 |
 |------|------|------|
@@ -224,17 +230,39 @@ Phase 4 (폴리싱) 🔲
 | code_name | text | 표시명 (예: '푸들') |
 | sort_order | int | 정렬 순서 |
 
+제약
+- PK: `(group_code, code)`
+
 ### walks
 | 컬럼 | 타입 | 설명 |
 |------|------|------|
 | id | int8 (PK) | 산책 ID |
-| dog_id | int8 (FK) | 강아지 (dogs.id) |
+| dog_id | int8 (FK) | 대표 강아지 (`dogs.id`) |
 | start_time | timestamptz | 산책 시작 시간 |
 | end_time | timestamptz | 산책 종료 시간 |
 | distance_km | numeric | 거리 (km) |
 | steps | int | 걸음수 |
 | route_points | jsonb | GPS 경로 좌표 배열 |
 | created_at | timestamptz | 기록 생성일 |
+
+제약/인덱스
+- `idx_walks_dog`
+- 멀티 강아지 참여 정보는 `walk_dogs`에서 별도 관리
+
+### walk_dogs
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| id | int8 (PK) | 연결 ID |
+| walk_id | int8 (FK) | 산책 세션 (`walks.id`) |
+| dog_id | int8 (FK) | 참여 강아지 (`dogs.id`) |
+| allocated_steps | int | 강아지별 배분 걸음 수 |
+| allocated_distance_km | numeric | 강아지별 배분 거리 |
+| display_order | int | 선택 순서 |
+| created_at | timestamptz | 생성 시각 |
+
+제약/인덱스
+- Unique: `(walk_id, dog_id)`
+- `idx_walk_dogs_walk`, `idx_walk_dogs_dog`
 
 ### daily_rankings
 | 컬럼 | 타입 | 설명 |
@@ -245,6 +273,10 @@ Phase 4 (폴리싱) 🔲
 | total_steps | int | 당일 누적 걸음수 |
 | total_distance_km | numeric | 당일 누적 거리 (km) |
 
+제약/인덱스
+- Unique: `(dog_id, date)`
+- `idx_daily_rankings_date`
+
 ### likes
 | 컬럼 | 타입 | 설명 |
 |------|------|------|
@@ -253,6 +285,10 @@ Phase 4 (폴리싱) 🔲
 | dog_id | int8 (FK) | 좋아요 받은 강아지 |
 | created_at | timestamptz | 좋아요 일시 |
 
+제약/인덱스
+- Unique: `(user_id, dog_id)`
+- `idx_likes_dog`
+
 ### follows
 | 컬럼 | 타입 | 설명 |
 |------|------|------|
@@ -260,6 +296,50 @@ Phase 4 (폴리싱) 🔲
 | follower_id | uuid (FK) | 팔로우 하는 사용자 |
 | following_id | uuid (FK) | 팔로우 받는 사용자 |
 | created_at | timestamptz | 팔로우 일시 |
+
+제약/인덱스
+- Unique: `(follower_id, following_id)`
+- `follower_id <> following_id`
+- `idx_follows_follower`, `idx_follows_following`
+
+### dog_members
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| id | int8 (PK) | 연결 ID |
+| dog_id | int8 (FK) | 강아지 (`dogs.id`) |
+| user_id | uuid (FK) | 사용자 (`auth.users.id`) |
+| role | text | 권한 역할 (`owner`, `family`) |
+| is_primary | boolean | 대표 멤버 여부 |
+| joined_at | timestamptz | 참여 시각 |
+| invited_by | uuid (FK) | 초대한 사용자 |
+
+제약/인덱스
+- Unique: `(dog_id, user_id)`
+- `role in ('owner', 'family')`
+- `idx_dog_members_dog`, `idx_dog_members_user`
+
+### dog_invites
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| id | int8 (PK) | 초대 ID |
+| dog_id | int8 (FK) | 초대 대상 강아지 (`dogs.id`) |
+| invite_code | text | 가족 초대 코드 |
+| created_by | uuid (FK) | 초대 생성 사용자 |
+| expires_at | timestamptz | 만료 시각 |
+| used_by | uuid (FK) | 코드 사용 사용자 |
+| used_at | timestamptz | 사용 시각 |
+| created_at | timestamptz | 생성 시각 |
+
+제약/인덱스
+- Unique: `invite_code`
+- `expires_at` 기본값: `now() + interval '7 days'`
+- `idx_dog_invites_code`, `idx_dog_invites_dog`
+
+### RLS 요약
+- `profiles`, `likes`, `follows`, `daily_rankings`는 인증 사용자 기준 읽기 허용 정책이 설정되어 있습니다.
+- `walks`는 완료된 산책은 조회 가능하고, 진행 중 산책은 소유 강아지 기준으로만 조회됩니다.
+- `dog_members`, `dog_invites`는 멤버십 기반 접근 정책을 사용합니다.
+- 세부 정책은 [`supabase/migrations/002_rls.sql`](supabase/migrations/002_rls.sql) 기준입니다.
 
 ## ⚙️ 실행 방법
 
@@ -274,72 +354,4 @@ flutter pub get
 # 3. 실행
 flutter run --dart-define-from-file=.dart_defines.json
 ```
-
-## Feature Expansion Plan
-
-기존 핵심 기능 외에 PawOut은 다음과 같은 방향으로 확장할 수 있다. 현재 구조를 크게 바꾸지 않고, Flutter + Supabase 기반 아키텍처 위에서 점진적으로 확장하는 것을 전제로 한다.
-
-### 1. 멀티 강아지 산책 지원
-- 산책 시작 전 여러 마리의 강아지를 선택할 수 있도록 확장
-- 기존 `walks`는 산책 세션의 대표 기록으로 유지하고, `walk_dogs` 링크 테이블로 참여 강아지를 연결
-- 초기 버전에서는 선택된 강아지 모두에게 동일 산책 기록을 연결하는 단순 정책 적용
-- 현재 산책 시작/종료 흐름을 유지하면서 기능만 확장하는 방향
-
-### 2. 가족 계정 공유 강아지
-- 한 사용자가 여러 강아지를 관리하고, 한 강아지를 여러 사용자가 함께 관리할 수 있도록 확장
-- `dog_members` 링크 테이블을 통해 강아지-사용자 관계를 관리
-- `owner / family` 역할을 두어 수정 권한과 조회 권한을 구분
-- 기존 단일 소유 구조는 유지한 채 점진적으로 공유 구조를 반영
-
-### 3. UX 기반 강아지 선택 흐름
-- GPS 기기 없이 사용자 선택 UX로 산책 참여 강아지를 구분
-- 산책 시작 전 강아지 선택, 한 마리만 있을 경우 자동 선택, 마지막 선택 조합 기억 기능 적용 가능
-- 초기 버전에서는 산책 전 선택 UX를 중심으로 구현하고, 산책 중 추가/제거는 추후 보완 대상으로 유지
-
-### 4. 지도 기반 애견 장소 확장
-- 산책 기능과 연계해 주변 반려동물 관련 장소를 확인할 수 있는 지도 기능으로 확장 가능
-- 애견 동반 카페, 동물병원, 펫 용품점, 산책 가능한 장소 등을 주요 대상으로 고려
-- 추후 Kakao, Naver, Google 지도 및 로컬 검색 API와 연동 가능
-- MVP 필수 기능은 아니며 이후 확장 기능으로 적합
-
-### 5. 급식 및 IoT 확장
-- 우선은 강아지별 수동 급식 기록 기능을 현실적인 확장안으로 고려
-- 이후 자동급식기, IoT 기기 연동을 통해 급식 이력 자동화 및 알림 기능으로 확장 가능
-- 현재 단계에서는 필수 기능이 아니며, 포트폴리오 프로젝트의 미래 확장 방향으로 유지한다
-
-## DB Expansion
-
-추가 확장 기능을 위해 기존 테이블은 유지하고, 아래 링크 테이블을 중심으로 확장한다.
-
-### walk_dogs
-멀티 강아지 산책 지원을 위한 연결 테이블.
-
-| Column | Type | Description |
-|------|------|------|
-| id | int8 (PK) | 연결 ID |
-| walk_id | int8 (FK) | 산책 세션 (`walks.id`) |
-| dog_id | int8 (FK) | 참여 강아지 (`dogs.id`) |
-| allocated_steps | int | 강아지별 배분 걸음 수 |
-| allocated_distance_km | numeric | 강아지별 배분 거리 |
-| display_order | int | 선택 순서 |
-| created_at | timestamptz | 생성 시각 |
-
-초기 버전에서는 `walks`에 대표 산책 1건을 저장하고, `walk_dogs`로 참여 강아지들을 연결한다.
-
-### dog_members
-가족 계정 공유 강아지를 위한 연결 테이블.
-
-| Column | Type | Description |
-|------|------|------|
-| id | int8 (PK) | 연결 ID |
-| dog_id | int8 (FK) | 강아지 (`dogs.id`) |
-| user_id | uuid (FK) | 사용자 (`profiles.id`) |
-| role | text | 권한 역할 (`owner`, `family`) |
-| is_primary | boolean | 대표 멤버 여부 |
-| joined_at | timestamptz | 참여 시각 |
-| invited_by | uuid (FK) | 초대한 사용자 |
-
-초기 권한 정책은 아래처럼 단순하게 유지한다.
-- `owner`: 강아지 수정/삭제, 가족 구성원 관리 가능
-- `family`: 강아지 조회 및 산책 참여 가능
 
