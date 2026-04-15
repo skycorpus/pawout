@@ -1,0 +1,5 @@
+{
+  "SUPABASE_URL": "https://your-project-id.supabase.co",
+  "SUPABASE_ANON_KEY": "your-anon-key-here",
+  "NAVER_MAP_CLIENT_ID": "your-naver-map-client-id-here"
+}

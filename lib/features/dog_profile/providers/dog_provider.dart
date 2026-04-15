@@ -47,7 +47,7 @@ class DogProvider with ChangeNotifier {
       _dogs.add(dog);
       return true;
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = '강아지 등록 실패: $e';
       return false;
     } finally {
       _isLoading = false;
@@ -115,6 +115,36 @@ class DogProvider with ChangeNotifier {
       _errorMessage = e.toString();
       notifyListeners();
       return null;
+    }
+  }
+
+  /// 초대 코드 생성 — 성공 시 코드 반환, 실패 시 null
+  Future<String?> generateInviteCode(int dogId) async {
+    _errorMessage = null;
+    try {
+      return await _repository.generateInviteCode(dogId);
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+      return null;
+    }
+  }
+
+  /// 초대 코드로 가족 참여 — 성공 시 강아지 목록 새로고침
+  Future<bool> joinByInviteCode(String code) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await _repository.joinByInviteCode(code);
+      await fetchDogs();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      _isLoading = false;
+      notifyListeners();
+      return false;
     }
   }
 

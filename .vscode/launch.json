@@ -1,0 +1,22 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "PawOut (dev)",
+      "request": "launch",
+      "type": "dart",
+      "toolArgs": [
+        "--dart-define-from-file=.dart_defines.json"
+      ]
+    },
+    {
+      "name": "PawOut (release)",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "release",
+      "toolArgs": [
+        "--dart-define-from-file=.dart_defines.json"
+      ]
+    }
+  ]
+}

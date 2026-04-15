@@ -15,9 +15,29 @@ class RankingRepository {
         .select('*, dogs(name, profile_image_url, user_id, profiles(name))')
         .eq('date', dateKey)
         .order('total_steps', ascending: false)
+        .order('total_distance_km', ascending: false)
         .limit(50);
 
-    return (response as List).map((e) => RankingEntry.fromJson(e)).toList();
+    return (response as List).map((item) {
+      return RankingEntry.fromJson(item as Map<String, dynamic>);
+    }).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> fetchRankingsForDateRange(
+    DateTime from,
+    DateTime to,
+  ) async {
+    final fromKey = from.toIso8601String().substring(0, 10);
+    final toKey = to.toIso8601String().substring(0, 10);
+    final response = await _supabase
+        .from('daily_rankings')
+        .select('*, dogs(name, profile_image_url, user_id, profiles(name))')
+        .gte('date', fromKey)
+        .lte('date', toKey)
+        .order('date', ascending: false)
+        .limit(500);
+
+    return (response as List).cast<Map<String, dynamic>>();
   }
 
   Future<void> updateDogRanking({

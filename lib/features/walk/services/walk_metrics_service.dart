@@ -47,7 +47,7 @@ class WalkMetricsService {
       distanceKm: nextDistanceKm,
       routePoints: [
         ...current.routePoints,
-        {'lat': latitude, 'lng': longitude},
+        {'latitude': latitude, 'longitude': longitude},
       ],
       lastLatitude: latitude,
       lastLongitude: longitude,

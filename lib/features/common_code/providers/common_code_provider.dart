@@ -27,8 +27,12 @@ class CommonCodeProvider extends ChangeNotifier {
     }
 
     try {
-      _codes[groupCode] = await _repository.fetchGroup(groupCode);
+      final result = await _repository.fetchGroup(groupCode);
+      debugPrint('[CommonCode] $groupCode → ${result.length}건: ${result.map((e) => e.code).toList()}');
+      _codes[groupCode] = result;
       notifyListeners();
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('[CommonCode] fetch 오류: $e');
+    }
   }
 }

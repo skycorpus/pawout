@@ -8,6 +8,8 @@ import '../models/walk_model.dart';
 import '../repositories/walk_repository.dart';
 import '../services/walk_metrics_service.dart';
 
+enum StopWalkResult { saved, tooShort, error }
+
 class WalkProvider extends ChangeNotifier {
   WalkProvider({
     WalkRepository? repository,
@@ -19,6 +21,7 @@ class WalkProvider extends ChangeNotifier {
   final WalkMetricsService _metricsService;
   bool _isWalking = false;
   int? _currentDogId;
+  List<int> _currentDogIds = [];
   int? _currentWalkId;
   DateTime? _startTime;
   int _steps = 0;
@@ -31,7 +34,6 @@ class WalkProvider extends ChangeNotifier {
 
   int _initialStepCount = 0;
   bool _stepCountInitialized = false;
-  Position? _lastPosition;
   WalkMetricsState _metricsState = const WalkMetricsState(
     distanceKm: 0,
     routePoints: [],
@@ -44,16 +46,58 @@ class WalkProvider extends ChangeNotifier {
 
   bool get isWalking => _isWalking;
   int? get currentDogId => _currentDogId;
+  List<int> get currentDogIds => List.unmodifiable(_currentDogIds);
   int get steps => _steps;
   double get distanceKm => _distanceKm;
   Duration get elapsed => _elapsed;
+  List<Map<String, double>> get routePoints => List.unmodifiable(_routePoints);
   List<Walk> get walks => List.unmodifiable(_walks);
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
+  /// 현재 연속 산책 일수 (오늘 포함, 하루라도 빠지면 0부터)
+  int get currentStreak {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    // 날짜별 산책 여부 집합
+    final walkedDays = _walks
+        .map((w) => DateTime(
+            w.startTime.year, w.startTime.month, w.startTime.day))
+        .toSet();
+
+    int streak = 0;
+    var checkDay = today;
+
+    // 오늘 산책이 없으면 어제부터 체크
+    if (!walkedDays.contains(checkDay)) {
+      checkDay = today.subtract(const Duration(days: 1));
+    }
+
+    while (walkedDays.contains(checkDay)) {
+      streak++;
+      checkDay = checkDay.subtract(const Duration(days: 1));
+    }
+
+    return streak;
+  }
+
+  /// 오늘 완료된 산책 걸음수 합계 + 현재 진행 중인 세션 걸음수
+  int get todayTotalSteps {
+    final now = DateTime.now();
+    final completedToday = _walks
+        .where((w) =>
+            w.startTime.year == now.year &&
+            w.startTime.month == now.month &&
+            w.startTime.day == now.day)
+        .fold(0, (sum, w) => sum + w.steps);
+    return completedToday + (_isWalking ? _steps : 0);
+  }
+
   void _resetActiveWalkState() {
     _isWalking = false;
     _currentDogId = null;
+    _currentDogIds = [];
     _currentWalkId = null;
     _startTime = null;
     _steps = 0;
@@ -61,13 +105,17 @@ class WalkProvider extends ChangeNotifier {
     _elapsed = Duration.zero;
     _routePoints = [];
     _metricsState = _metricsService.initialState();
-    _lastPosition = null;
     _initialStepCount = 0;
     _stepCountInitialized = false;
   }
 
-  Future<bool> startWalk(int dogId) async {
+  Future<bool> startWalk(List<int> dogIds) async {
     if (_isWalking) {
+      return false;
+    }
+    if (dogIds.isEmpty) {
+      _errorMessage = 'Select at least one dog.';
+      notifyListeners();
       return false;
     }
 
@@ -83,14 +131,14 @@ class WalkProvider extends ChangeNotifier {
     }
 
     _isWalking = true;
-    _currentDogId = dogId;
+    _currentDogId = dogIds.first;
+    _currentDogIds = List.unmodifiable(dogIds);
     _startTime = DateTime.now();
     _steps = 0;
     _distanceKm = 0.0;
     _elapsed = Duration.zero;
     _routePoints = [];
     _metricsState = _metricsService.initialState();
-    _lastPosition = null;
     _initialStepCount = 0;
     _stepCountInitialized = false;
     _errorMessage = null;
@@ -98,7 +146,8 @@ class WalkProvider extends ChangeNotifier {
 
     try {
       _currentWalkId = await _repository.createWalk(
-        dogId: dogId,
+        primaryDogId: dogIds.first,
+        dogIds: dogIds,
         startTime: _startTime!,
       );
     } catch (e) {
@@ -139,7 +188,6 @@ class WalkProvider extends ChangeNotifier {
         );
         _distanceKm = _metricsState.distanceKm;
         _routePoints = _metricsState.routePoints;
-        _lastPosition = pos;
         notifyListeners();
       },
       onError: (_) {},
@@ -148,9 +196,12 @@ class WalkProvider extends ChangeNotifier {
     return true;
   }
 
-  Future<bool> stopWalk() async {
+  static const double _minDistanceKm = 0.1;
+  static const int _minDurationSec = 60;
+
+  Future<StopWalkResult> stopWalk() async {
     if (!_isWalking || _currentWalkId == null || _startTime == null) {
-      return false;
+      return StopWalkResult.error;
     }
 
     _timer?.cancel();
@@ -158,6 +209,18 @@ class WalkProvider extends ChangeNotifier {
     await _posSub?.cancel();
 
     final endTime = DateTime.now();
+    final durationSec = endTime.difference(_startTime!).inSeconds;
+
+    // 최소 기록 조건 미달 시 취소
+    if (_distanceKm < _minDistanceKm || durationSec < _minDurationSec) {
+      final walkId = _currentWalkId!;
+      _resetActiveWalkState();
+      notifyListeners();
+      try {
+        await _repository.cancelWalk(walkId);
+      } catch (_) {}
+      return StopWalkResult.tooShort;
+    }
 
     try {
       await _repository.completeWalk(
@@ -183,11 +246,11 @@ class WalkProvider extends ChangeNotifier {
 
       _resetActiveWalkState();
       notifyListeners();
-      return true;
+      return StopWalkResult.saved;
     } catch (e) {
       _errorMessage = e.toString();
       notifyListeners();
-      return false;
+      return StopWalkResult.error;
     }
   }
 

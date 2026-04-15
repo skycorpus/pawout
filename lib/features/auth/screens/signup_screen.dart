@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../core/constants/routes.dart';
+import '../../../core/utils/validators.dart';
 import '../providers/auth_provider.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -52,13 +54,10 @@ class _SignupScreenState extends State<SignupScreen> {
     );
 
     if (success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('회원가입이 완료되었습니다.'),
-          backgroundColor: Colors.green,
-        ),
+      Navigator.of(context).pushReplacementNamed(
+        AppRoutes.emailVerify,
+        arguments: _emailController.text.trim(),
       );
-      Navigator.of(context).pushReplacementNamed('/home');
     }
   }
 
@@ -110,15 +109,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     filled: true,
                     fillColor: Colors.white,
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return '이름을 입력해주세요.';
-                    }
-                    if (value.length < 2) {
-                      return '이름은 2자 이상이어야 합니다.';
-                    }
-                    return null;
-                  },
+                  validator: Validators.name,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -134,15 +125,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     filled: true,
                     fillColor: Colors.white,
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return '이메일을 입력해주세요.';
-                    }
-                    if (!value.contains('@') || !value.contains('.')) {
-                      return '올바른 이메일 형식을 입력해주세요.';
-                    }
-                    return null;
-                  },
+                  validator: Validators.email,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -170,15 +153,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     filled: true,
                     fillColor: Colors.white,
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return '비밀번호를 입력해주세요.';
-                    }
-                    if (value.length < 6) {
-                      return '비밀번호는 6자 이상이어야 합니다.';
-                    }
-                    return null;
-                  },
+                  validator: Validators.password,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -206,15 +181,8 @@ class _SignupScreenState extends State<SignupScreen> {
                     filled: true,
                     fillColor: Colors.white,
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return '비밀번호 확인을 입력해주세요.';
-                    }
-                    if (value != _passwordController.text) {
-                      return '비밀번호가 일치하지 않습니다.';
-                    }
-                    return null;
-                  },
+                  validator: (v) =>
+                      Validators.confirmPassword(v, _passwordController.text),
                 ),
                 const SizedBox(height: 24),
                 Container(

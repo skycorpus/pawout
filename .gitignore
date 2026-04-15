@@ -1,3 +1,10 @@
+# Environment / secrets
+.dart_defines.json
+.env
+.env.*
+!.env.example
+!.dart_defines.json.example
+
 # Miscellaneous
 *.class
 *.log

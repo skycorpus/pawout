@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../core/constants/colors.dart';
 import '../../dog_profile/providers/dog_provider.dart';
 import '../../follows/providers/follows_provider.dart';
 import '../../likes/providers/likes_provider.dart';
@@ -15,134 +16,271 @@ class RankingScreen extends StatefulWidget {
 }
 
 class _RankingScreenState extends State<RankingScreen> {
+  RankingPeriod _period = RankingPeriod.daily;
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await context.read<RankingProvider>().fetchDailyRankings();
-      if (mounted) {
-        final dogIds = context
-            .read<RankingProvider>()
-            .rankings
-            .map((e) => e.dogId)
-            .toList();
-        context.read<LikesProvider>().fetchMyLikes();
-        context.read<LikesProvider>().fetchLikeCounts(dogIds);
-        context.read<FollowsProvider>().fetchMyFollows();
-      }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _load(_period);
     });
   }
 
-  String _today() {
+  Future<void> _load(RankingPeriod period) async {
+    final rankingProvider = context.read<RankingProvider>();
+    await rankingProvider.fetchRankings(period);
+    if (!mounted) return;
+    final dogIds = rankingProvider.rankings.map((e) => e.dogId).toList();
+    context.read<LikesProvider>().fetchMyLikes();
+    context.read<LikesProvider>().fetchLikeCounts(dogIds);
+    context.read<FollowsProvider>().fetchMyFollows();
+  }
+
+  void _onPeriodChanged(RankingPeriod period) {
+    if (_period == period) return;
+    setState(() => _period = period);
+    _load(period);
+  }
+
+  String _periodLabel(RankingPeriod p) {
+    switch (p) {
+      case RankingPeriod.daily:
+        return '일간';
+      case RankingPeriod.weekly:
+        return '주간';
+      case RankingPeriod.monthly:
+        return '월간';
+    }
+  }
+
+  String _dateLabel() {
     final now = DateTime.now();
-    return '${now.year}.${now.month.toString().padLeft(2, '0')}.${now.day.toString().padLeft(2, '0')}';
+    switch (_period) {
+      case RankingPeriod.daily:
+        return '${now.year}.${now.month.toString().padLeft(2, '0')}.${now.day.toString().padLeft(2, '0')}';
+      case RankingPeriod.weekly:
+        final weekday = now.weekday;
+        final monday = now.subtract(Duration(days: weekday - 1));
+        return '${monday.month}/${monday.day} – ${now.month}/${now.day}';
+      case RankingPeriod.monthly:
+        return '${now.year}년 ${now.month}월';
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFF8F0),
-      appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: Column(
           children: [
-            const Text(
-              '오늘의 랭킹',
-              style: TextStyle(fontWeight: FontWeight.bold),
+            // ── 헤더 ──
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+              child: Row(
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        '랭킹',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.text1,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      Text(
+                        _dateLabel(),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.text2,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Spacer(),
+                  // 내 순위 칩
+                  Consumer2<RankingProvider, DogProvider>(
+                    builder: (_, rankingProvider, dogProvider, __) {
+                      final myDogIds = dogProvider.dogs
+                          .map((d) => d.id)
+                          .whereType<int>()
+                          .toSet();
+                      final rank = rankingProvider.myBestRank(myDogIds);
+                      if (rank == null) return const SizedBox.shrink();
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          gradient: AppColors.heroGradient,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          '내 순위 #$rank',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
-            Text(
-              _today(),
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
+
+            const SizedBox(height: 14),
+
+            // ── 기간 탭 ──
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Container(
+                padding: const EdgeInsets.all(3),
+                decoration: BoxDecoration(
+                  color: AppColors.brownLight,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: RankingPeriod.values.map((p) {
+                    final selected = _period == p;
+                    return Expanded(
+                      child: GestureDetector(
+                        onTap: () => _onPeriodChanged(p),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 180),
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          decoration: BoxDecoration(
+                            color: selected
+                                ? AppColors.green
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(9),
+                          ),
+                          child: Center(
+                            child: Text(
+                              _periodLabel(p),
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: selected
+                                    ? Colors.white
+                                    : AppColors.text2,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            // ── 본문 ──
+            Expanded(
+              child: Consumer2<RankingProvider, DogProvider>(
+                builder: (context, rankingProvider, dogProvider, _) {
+                  if (rankingProvider.isLoading) {
+                    return const Center(
+                      child:
+                          CircularProgressIndicator(color: AppColors.green),
+                    );
+                  }
+
+                  if (rankingProvider.errorMessage != null) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.error_outline,
+                              size: 48, color: AppColors.error),
+                          const SizedBox(height: 12),
+                          Text(
+                            rankingProvider.errorMessage!,
+                            style:
+                                const TextStyle(color: AppColors.error),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: () => _load(_period),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.green,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                            ),
+                            child: const Text('다시 시도'),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  if (rankingProvider.rankings.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.emoji_events,
+                              size: 72, color: AppColors.brownMid),
+                          const SizedBox(height: 16),
+                          const Text(
+                            '랭킹 데이터가 없습니다',
+                            style: TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.text1,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            '산책을 시작하면 랭킹에 등록돼요!',
+                            style: TextStyle(color: AppColors.text2),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  final myDogIds = dogProvider.dogs
+                      .map((d) => d.id)
+                      .whereType<int>()
+                      .toSet();
+
+                  return RefreshIndicator(
+                    color: AppColors.green,
+                    onRefresh: () => _load(_period),
+                    child: ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                      itemCount: rankingProvider.rankings.length,
+                      itemBuilder: (context, index) {
+                        final entry = rankingProvider.rankings[index];
+                        final isMyDog = myDogIds.contains(entry.dogId);
+                        return _RankingCard(
+                          entry: entry,
+                          rank: index + 1,
+                          isMyDog: isMyDog,
+                        );
+                      },
+                    ),
+                  );
+                },
+              ),
             ),
           ],
         ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: Consumer2<RankingProvider, DogProvider>(
-        builder: (context, rankingProvider, dogProvider, _) {
-          if (rankingProvider.isLoading) {
-            return const Center(
-              child: CircularProgressIndicator(color: Color(0xFFFF6B9D)),
-            );
-          }
-
-          if (rankingProvider.errorMessage != null) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error_outline, size: 48, color: Colors.red),
-                  const SizedBox(height: 12),
-                  Text(
-                    rankingProvider.errorMessage!,
-                    style: const TextStyle(color: Colors.red),
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () => rankingProvider.fetchDailyRankings(),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFF6B9D),
-                      foregroundColor: Colors.white,
-                    ),
-                    child: const Text('다시 시도'),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          if (rankingProvider.rankings.isEmpty) {
-            return const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.emoji_events, size: 80, color: Color(0xFFFF6B9D)),
-                  SizedBox(height: 16),
-                  Text(
-                    '아직 오늘의 랭킹이 없습니다.',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    '산책을 시작하면 랭킹에 등록돼요!',
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          final myDogIds = dogProvider.dogs.map((d) => d.id).toSet();
-
-          return RefreshIndicator(
-            color: const Color(0xFFFF6B9D),
-            onRefresh: () async {
-              await rankingProvider.fetchDailyRankings();
-              final dogIds = rankingProvider.rankings.map((e) => e.dogId).toList();
-              context.read<LikesProvider>().fetchMyLikes();
-              context.read<LikesProvider>().fetchLikeCounts(dogIds);
-              context.read<FollowsProvider>().fetchMyFollows();
-            },
-            child: ListView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-              itemCount: rankingProvider.rankings.length,
-              itemBuilder: (context, index) {
-                final entry = rankingProvider.rankings[index];
-                final isMyDog = myDogIds.contains(entry.dogId);
-                return _RankingCard(
-                  entry: entry,
-                  rank: index + 1,
-                  isMyDog: isMyDog,
-                );
-              },
-            ),
-          );
-        },
       ),
     );
   }
 }
+
+// ── 랭킹 카드 ──────────────────────────────────────────────────────────
 
 class _RankingCard extends StatelessWidget {
   const _RankingCard({
@@ -186,7 +324,6 @@ class _RankingCard extends StatelessWidget {
         ),
       );
     }
-
     return SizedBox(
       width: 36,
       child: Text(
@@ -207,12 +344,10 @@ class _RankingCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: isMyDog
-            ? const Color(0xFFFF6B9D).withValues(alpha: 0.08)
-            : Colors.white,
+        color: isMyDog ? AppColors.greenLight : AppColors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isMyDog ? const Color(0xFFFF6B9D) : Colors.transparent,
+          color: isMyDog ? AppColors.green : Colors.transparent,
           width: isMyDog ? 1.5 : 0,
         ),
         boxShadow: [
@@ -229,12 +364,12 @@ class _RankingCard extends StatelessWidget {
           const SizedBox(width: 12),
           CircleAvatar(
             radius: 24,
-            backgroundColor: const Color(0xFFFF6B9D).withValues(alpha: 0.1),
+            backgroundColor: AppColors.brownLight,
             backgroundImage: entry.dogImageUrl != null
                 ? NetworkImage(entry.dogImageUrl!)
                 : null,
             child: entry.dogImageUrl == null
-                ? const Icon(Icons.pets, color: Color(0xFFFF6B9D), size: 22)
+                ? const Icon(Icons.pets, color: AppColors.brown, size: 22)
                 : null,
           ),
           const SizedBox(width: 12),
@@ -249,17 +384,16 @@ class _RankingCard extends StatelessWidget {
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
+                        color: AppColors.text1,
                       ),
                     ),
                     if (isMyDog) ...[
                       const SizedBox(width: 6),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
+                            horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFF6B9D),
+                          color: AppColors.green,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Text(
@@ -278,7 +412,8 @@ class _RankingCard extends StatelessWidget {
                   children: [
                     Text(
                       entry.ownerName,
-                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                      style: const TextStyle(
+                          color: AppColors.text2, fontSize: 12),
                     ),
                     if (!isMyDog && entry.ownerId != null) ...[
                       const SizedBox(width: 6),
@@ -287,17 +422,15 @@ class _RankingCard extends StatelessWidget {
                           final following =
                               followsProvider.isFollowing(entry.ownerId!);
                           return GestureDetector(
-                            onTap: () =>
-                                followsProvider.toggleFollow(entry.ownerId!),
+                            onTap: () => followsProvider
+                                .toggleFollow(entry.ownerId!),
                             child: Container(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 2,
-                              ),
+                                  horizontal: 8, vertical: 2),
                               decoration: BoxDecoration(
                                 color: following
-                                    ? Colors.grey.shade200
-                                    : const Color(0xFFFF6B9D),
+                                    ? AppColors.brownLight
+                                    : AppColors.green,
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
@@ -306,7 +439,7 @@ class _RankingCard extends StatelessWidget {
                                   fontSize: 10,
                                   fontWeight: FontWeight.bold,
                                   color: following
-                                      ? Colors.grey[600]
+                                      ? AppColors.text2
                                       : Colors.white,
                                 ),
                               ),
@@ -325,11 +458,15 @@ class _RankingCard extends StatelessWidget {
             children: [
               Text(
                 '${entry.totalSteps}걸음',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: AppColors.text1),
               ),
               Text(
                 '${entry.totalDistanceKm.toStringAsFixed(2)}km',
-                style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                style: const TextStyle(
+                    color: AppColors.text2, fontSize: 12),
               ),
               const SizedBox(height: 4),
               Consumer<LikesProvider>(
@@ -337,15 +474,17 @@ class _RankingCard extends StatelessWidget {
                   final liked = likesProvider.isLiked(entry.dogId);
                   final count = likesProvider.getLikeCount(entry.dogId);
                   return GestureDetector(
-                    onTap: isMyDog ? null : () => likesProvider.toggleLike(entry.dogId),
+                    onTap: isMyDog
+                        ? null
+                        : () => likesProvider.toggleLike(entry.dogId),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
                           liked ? Icons.favorite : Icons.favorite_border,
                           color: isMyDog
-                              ? Colors.grey.shade300
-                              : (liked ? const Color(0xFFFF6B9D) : Colors.grey),
+                              ? AppColors.text3
+                              : (liked ? AppColors.error : AppColors.text3),
                           size: 18,
                         ),
                         const SizedBox(width: 2),
@@ -353,7 +492,8 @@ class _RankingCard extends StatelessWidget {
                           '$count',
                           style: TextStyle(
                             fontSize: 12,
-                            color: liked ? const Color(0xFFFF6B9D) : Colors.grey,
+                            color:
+                                liked ? AppColors.error : AppColors.text3,
                           ),
                         ),
                       ],

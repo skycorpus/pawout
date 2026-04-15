@@ -1,6 +1,7 @@
 class Walk {
   final int? id;
   final int dogId;
+  final List<int> dogIds;
   final DateTime startTime;
   final DateTime? endTime;
   final double distanceKm;
@@ -11,13 +12,15 @@ class Walk {
   Walk({
     this.id,
     required this.dogId,
+    List<int>? dogIds,
     required this.startTime,
     this.endTime,
     this.distanceKm = 0.0,
     this.steps = 0,
     this.routePoints,
     DateTime? createdAt,
-  }) : createdAt = createdAt ?? DateTime.now();
+  })  : dogIds = List.unmodifiable(dogIds ?? [dogId]),
+        createdAt = createdAt ?? DateTime.now();
 
   int get durationMinutes =>
       (endTime ?? DateTime.now()).difference(startTime).inMinutes;
@@ -26,6 +29,11 @@ class Walk {
     return Walk(
       id: json['id'] as int?,
       dogId: json['dog_id'] as int,
+      dogIds: json['walk_dogs'] != null
+          ? (json['walk_dogs'] as List)
+              .map((item) => item['dog_id'] as int)
+              .toList()
+          : [json['dog_id'] as int],
       startTime: DateTime.parse(json['start_time'] as String),
       endTime: json['end_time'] != null
           ? DateTime.parse(json['end_time'] as String)
@@ -47,6 +55,7 @@ class Walk {
   Map<String, dynamic> toJson() {
     return {
       'dog_id': dogId,
+      'dog_ids': dogIds,
       'start_time': startTime.toIso8601String(),
       if (endTime != null) 'end_time': endTime!.toIso8601String(),
       'distance_km': distanceKm,

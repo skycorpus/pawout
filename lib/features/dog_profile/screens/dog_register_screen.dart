@@ -62,6 +62,7 @@ class _DogRegisterScreenState extends State<DogRegisterScreen> {
         });
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('사진을 불러오는데 실패했습니다: $e')),
       );
@@ -121,7 +122,7 @@ class _DogRegisterScreenState extends State<DogRegisterScreen> {
       },
     );
 
-    if (selected != null) {
+    if (selected != null && mounted) {
       final codeName = context
           .read<CommonCodeProvider>()
           .getCodeName('BREED', selected);

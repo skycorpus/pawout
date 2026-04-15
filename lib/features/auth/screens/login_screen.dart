@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
+import '../../../core/constants/routes.dart';
+import '../../../core/utils/validators.dart';
 import '../providers/auth_provider.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -28,38 +29,50 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    final authProvider = context.read<AuthProvider>();
+    // AuthProvider 가져오기
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
     final success = await authProvider.login(
       email: _emailController.text.trim(),
       password: _passwordController.text,
     );
 
     if (success && mounted) {
-      Navigator.of(context).pushReplacementNamed('/home');
+      if (authProvider.isEmailVerified) {
+        Navigator.of(context).pushReplacementNamed(AppRoutes.home);
+      } else {
+        Navigator.of(context).pushReplacementNamed(
+          AppRoutes.emailVerify,
+          arguments: _emailController.text.trim(),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = context.watch<AuthProvider>();
+    final authProvider = Provider.of<AuthProvider>(context);
 
     return Scaffold(
       backgroundColor: const Color(0xFFFFF8F0),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(24.0),
             child: Form(
               key: _formKey,
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  // 로고 영역
                   const Icon(
                     Icons.pets,
                     size: 80,
                     color: Color(0xFFFF6B9D),
                   ),
                   const SizedBox(height: 16),
+
                   const Text(
                     'PawOut',
                     textAlign: TextAlign.center,
@@ -70,12 +83,18 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
+
                   Text(
-                    '강아지와 함께하는 산책 기록 서비스',
+                    '우리 강아지와 함께하는 산책',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                    ),
                   ),
                   const SizedBox(height: 48),
+
+                  // 이메일 입력
                   TextFormField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
@@ -89,17 +108,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       filled: true,
                       fillColor: Colors.white,
                     ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return '이메일을 입력해주세요.';
-                      }
-                      if (!value.contains('@')) {
-                        return '올바른 이메일 형식을 입력해주세요.';
-                      }
-                      return null;
-                    },
+                    validator: Validators.email,
                   ),
                   const SizedBox(height: 16),
+
+                  // 비밀번호 입력
                   TextFormField(
                     controller: _passwordController,
                     obscureText: _obscurePassword,
@@ -125,17 +138,30 @@ class _LoginScreenState extends State<LoginScreen> {
                       filled: true,
                       fillColor: Colors.white,
                     ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return '비밀번호를 입력해주세요.';
-                      }
-                      if (value.length < 6) {
-                        return '비밀번호는 6자 이상이어야 합니다.';
-                      }
-                      return null;
-                    },
+                    validator: Validators.password,
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 8),
+
+                  // 비밀번호 찾기
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () => Navigator.of(context)
+                          .pushNamed(AppRoutes.forgotPassword),
+                      style: TextButton.styleFrom(
+                        foregroundColor: const Color(0xFFFF6B9D),
+                        padding: EdgeInsets.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: const Text(
+                        '비밀번호를 잊으셨나요?',
+                        style: TextStyle(fontSize: 13),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // 로그인 버튼
                   ElevatedButton(
                     onPressed: authProvider.isLoading ? null : _handleLogin,
                     style: ElevatedButton.styleFrom(
@@ -145,6 +171,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
+                      elevation: 2,
                     ),
                     child: authProvider.isLoading
                         ? const SizedBox(
@@ -152,9 +179,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             width: 20,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                Colors.white,
-                              ),
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(Colors.white),
                             ),
                           )
                         : const Text(
@@ -166,10 +192,14 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                   ),
                   const SizedBox(height: 16),
+
+                  // 회원가입 버튼
                   OutlinedButton(
-                    onPressed: () {
-                      Navigator.of(context).pushNamed('/signup');
-                    },
+                    onPressed: authProvider.isLoading
+                        ? null
+                        : () {
+                            Navigator.of(context).pushNamed('/signup');
+                          },
                     style: OutlinedButton.styleFrom(
                       foregroundColor: const Color(0xFFFF6B9D),
                       padding: const EdgeInsets.symmetric(vertical: 16),
@@ -189,6 +219,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ),
+
+                  // 에러 메시지 표시
                   if (authProvider.errorMessage != null) ...[
                     const SizedBox(height: 16),
                     Container(
@@ -203,6 +235,36 @@ class _LoginScreenState extends State<LoginScreen> {
                         textAlign: TextAlign.center,
                       ),
                     ),
+                    if (authProvider.errorMessage == '이메일 인증이 필요합니다') ...[
+                      const SizedBox(height: 8),
+                      TextButton.icon(
+                        onPressed: () async {
+                          final email = _emailController.text.trim();
+                          if (email.isEmpty) return;
+                          final ok = await authProvider
+                              .resendVerificationEmail(email);
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(ok
+                                    ? '인증 메일을 재발송했습니다'
+                                    : (authProvider.errorMessage ??
+                                        '재발송에 실패했습니다')),
+                                backgroundColor: ok
+                                    ? const Color(0xFFFF6B9D)
+                                    : Colors.red,
+                              ),
+                            );
+                          }
+                        },
+                        icon: const Icon(Icons.mark_email_unread_outlined,
+                            size: 18),
+                        label: const Text('인증 메일 재발송'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: const Color(0xFFFF6B9D),
+                        ),
+                      ),
+                    ],
                   ],
                 ],
               ),
